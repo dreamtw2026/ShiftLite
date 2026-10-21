@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}概览{% endblock %}
+{% block topbar_actions %}
+<a class="btn btn-filled" href="{{ url_for('schedule_page') }}">{{ icon('calendar') }}去排班</a>
+<a class="btn btn-outlined" href="{{ url_for('export_hours', period='week', date=today.isoformat()) }}">{{ icon('download') }}导出本周工时</a>
+{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-label">{{ icon('calendar') }}本周排班班次</div>
+    <div class="stat-value">{{ week_shift_count }}<span class="unit">班</span></div>
+    <div class="stat-hint">{{ week_start.isoformat() }} ~ {{ week_end.isoformat() }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">{{ icon('users') }}在职员工</div>
+    <div class="stat-value">{{ employee_count }}<span class="unit">人</span></div>
+    <div class="stat-hint">全职 / 兼职均计</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">{{ icon('clock') }}本周有效工时</div>
+    <div class="stat-value">{{ week_hours }}<span class="unit">小时</span></div>
+    <div class="stat-hint">已扣除班内休息</div>
+  </div>
+  <div class="stat-card {{ 'tone-error' if conflict_errors else '' }}">
+    <div class="stat-label">{{ icon('alert') }}待处理冲突</div>
+    <div class="stat-value">{{ conflict_errors | length }}<span class="unit">项错误</span></div>
+    <div class="stat-hint">另有 {{ conflict_warnings | length }} 项工时提示</div>
+  </div>
+</div>
+
+<div class="page-grid-2">
+  <div class="card">
+    <div class="card-title">
+      <h2>今日排班 · {{ today.isoformat() }}（{{ weekday_name }}）</h2>
+      <a class="btn btn-text btn-sm" href="{{ url_for('schedule_page', date=today.isoformat()) }}">查看全周</a>
+    </div>
+    {% if today_rows %}
+    <div class="today-list">
+      {% for r in today_rows | sort(attribute='start_time') %}
+      <div class="today-item">
+        <span class="t-time">{{ r.start_time }}–{{ r.end_time }}</span>
+        <span class="t-who">{{ r.employee_name }}</span>
+        {% if r.position %}<span class="t-pos">{{ r.position }}</span>{% endif %}
+        {% if r.template_name %}<span class="chip chip-neutral">{{ r.template_name }}</span>{% endif %}
+        <span class="spacer"></span>
+        <span class="t-pos">休息 {{ r.break_minutes }} 分钟</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      {{ icon('calendar') }}
+      <p>今天暂无排班。</p>
+      <a class="btn btn-tonal btn-sm" href="{{ url_for('schedule_page', date=today.isoformat()) }}">现在安排</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <h2>本周冲突提示</h2>
+      <a class="btn btn-text btn-sm" href="{{ url_for('schedule_page') }}">去处理</a>
+    </div>
+    {% set conflicts = conflict_errors + conflict_warnings %}
+    {% if conflicts %}
+    <div class="conflict-list">
+      {% for c in conflicts[:5] %}
+      <a class="conflict-item sev-{{ c.severity }} clickable"
+         href="{{ url_for('schedule_page', date=c.date, focus=c.schedule_id) }}"
+         aria-label="前往排班页定位该冲突">
+        {% if c.severity == 'error' %}{{ icon('x-circle') }}{% else %}{{ icon('alert') }}{% endif %}
+        <div>
+          <div class="c-text"><span class="c-rule">{{ c.rule_label }}</span>{{ c.message }}</div>
+          <div class="c-meta">{{ c.date }}（{{ c.weekday }}）· {{ c.employee_name }} · {{ c.time }}</div>
+        </div>
+      </a>
+      {% endfor %}
+      <p class="small muted" style="margin:10px 2px 0;">点击提示可跳转到排班页并高亮对应班次。</p>
+      {% if conflicts | length > 5 %}
+      <a class="small" href="{{ url_for('schedule_page') }}">还有 {{ conflicts | length - 5 }} 条，前往排班页查看全部 →</a>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      {{ icon('check-circle') }}
+      <p>本周排班无冲突，安排合理。</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">
+    <h2>快捷入口</h2>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn btn-tonal" href="{{ url_for('employees_page') }}">{{ icon('user-plus') }}维护员工</a>
+    <a class="btn btn-tonal" href="{{ url_for('shift_templates_page') }}">{{ icon('briefcase') }}配置班次模板</a>
+    <a class="btn btn-tonal" href="{{ url_for('hours_page') }}">{{ icon('chart') }}查看工时统计</a>
+    <a class="btn btn-tonal" href="{{ url_for('export_schedule', date=today.isoformat()) }}">{{ icon('download') }}导出本周排班表</a>
+    <a class="btn btn-tonal" href="{{ url_for('settings_page') }}">{{ icon('sliders') }}调整排班规则</a>
+  </div>
+</div>
+{% endblock %}

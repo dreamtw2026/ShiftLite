@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}排班{% endblock %}
+{% block topbar_actions %}
+<button type="button" class="btn btn-tonal" id="copy-prev-week" data-target-date="{{ week_start.isoformat() }}">{{ icon('copy') }}复制上周</button>
+<a class="btn btn-outlined" href="{{ url_for('export_schedule', date=anchor.isoformat()) }}">{{ icon('download') }}导出本周排班表</a>
+{% endblock %}
+
+{% block content %}
+<div class="sched-toolbar desktop-only">
+  <div class="sched-nav">
+    <a class="icon-btn" href="{{ url_for('schedule_page', date=prev_week.isoformat()) }}" aria-label="上一周">{{ icon('chevron-left') }}</a>
+    <a class="btn btn-text btn-sm" href="{{ url_for('schedule_page', date=today.isoformat()) }}">本周</a>
+    <a class="icon-btn" href="{{ url_for('schedule_page', date=next_week.isoformat()) }}" aria-label="下一周">{{ icon('chevron-right') }}</a>
+    <span class="week-title">{{ week_start.isoformat() }} ~ {{ week_end.isoformat() }}
+      <span class="sub">{{ '本月' if week_start.month == week_end.month else week_start.month ~ '月 ~ ' ~ week_end.month ~ '月' }}</span></span>
+  </div>
+  <span class="muted small">点击空白格新增班次，点击班次芯片可调整或删除</span>
+</div>
+
+<div class="m-sched">
+  {# 移动端：日期导航（上一周 / 下一周 / 日期选择 / 本周各日快速切换） #}
+  <nav class="m-nav card" aria-label="排班日期导航">
+    <div class="m-nav-row">
+      <a class="icon-btn" href="{{ url_for('schedule_page', date=prev_week.isoformat()) }}" aria-label="上一周">{{ icon('chevron-left') }}</a>
+      <input type="date" id="m-date" class="m-date" value="{{ anchor.isoformat() }}" aria-label="选择日期">
+      <a class="icon-btn" href="{{ url_for('schedule_page', date=next_week.isoformat()) }}" aria-label="下一周">{{ icon('chevron-right') }}</a>
+    </div>
+    <div class="m-dow" role="group" aria-label="本周各日">
+      {% for d in days %}
+      <a class="m-dow-btn {{ 'sel' if d == anchor }} {{ 'today' if d == today }}"
+         href="{{ url_for('schedule_page', date=d.isoformat()) }}"
+         aria-label="{{ d.month }}月{{ d.day }}日{{ weekday_names[d.isoweekday()] }}" {% if d == anchor %}aria-current="date"{% endif %}>
+        <span class="num">{{ d.day }}</span>
+        <span class="w">{{ weekday_names[d.isoweekday()][1] }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </nav>
+
+  <div class="m-day-head">
+    <strong>{{ anchor.month }}月{{ anchor.day }}日</strong><span>（{{ weekday_names[anchor.isoweekday()] }}）</span>
+    <span class="sub">{{ '共 ' ~ (day_shifts | length) ~ ' 个班次' if day_shifts else '当日暂无班次' }}</span>
+  </div>
+
+  {% if employees %}
+    {% if day_shifts %}
+    <div class="m-shifts">
+      {% for r in day_shifts %}
+      {% set clist = conflict_by_schedule.get(r.id, []) %}
+      {% set has_err = clist | selectattr('severity','equalto','error') | list %}
+      <article class="m-shift {{ 'has-error' if has_err else ('has-warning' if clist else '') }}" id="m-shift-{{ r.id }}">
+        <header class="m-shift-head">
+          <span class="emp-avatar tint-{{ ['a','b','c'][r.employee_id % 3] }}" aria-hidden="true">{{ r.employee_name[:1] }}</span>
+          <div class="m-shift-who">
+            <strong class="m-shift-name">{{ r.employee_name }}</strong>
+            <span class="m-shift-pos">{{ r.position or '未设岗位' }}{% if r.template_name %} · {{ r.template_name }}{% endif %}</span>
+          </div>
+          <span class="chip chip-sm {{ 'chip-primary' if r.employment_type == 'fulltime' else 'chip-secondary' }}">{{ '全职' if r.employment_type == 'fulltime' else '兼职' }}</span>
+        </header>
+        <div class="m-shift-time">
+          {{ icon('clock') }}<span>{{ r.start_time }}–{{ r.end_time }}</span>
+          {% if r.cross_day %}<span class="chip chip-sm chip-neutral">次日结束</span>{% endif %}
+        </div>
+        <div class="m-shift-stats">
+          <span>{{ '休息 ' ~ r.break_minutes ~ ' 分钟' if r.break_minutes else '无休息' }}</span>
+          <span>有效工时 <strong>{{ r.effective_hours }}</strong> h</span>
+        </div>
+        {% if clist %}
+        <div class="m-conflicts">
+          {% for c in clist %}
+          <div class="m-conf">
+            {% if c.severity == 'error' %}
+            <span class="chip chip-sm chip-error">{{ icon('x-circle') }}错误</span>
+            {% else %}
+            <span class="chip chip-sm chip-warning">{{ icon('alert') }}提示</span>
+            {% endif %}
+            {% set long = c.message | length > 40 %}
+            <span class="m-conf-msg {{ 'clamp' if long }}"><b>{{ c.rule_label }}：</b>{{ c.message }}</span>
+            {% if long %}
+            <button type="button" class="m-conf-toggle" data-conf-toggle aria-expanded="false">展开</button>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <footer class="m-shift-actions">
+          <button type="button" class="btn btn-tonal btn-sm" data-shift-edit
+                  data-emp='{{ {"id": r.id, "employee_id": r.employee_id, "employee_name": r.employee_name, "work_date": r.work_date.isoformat(), "template_id": r.template_id, "start_time": r.start_time, "end_time": r.end_time, "break_minutes": r.break_minutes or 0, "position": r.position, "note": r.note} | tojson }}'
+                  aria-label="编辑 {{ r.employee_name }} 的班次">
+            {{ icon('edit') }}<span>编辑</span></button>
+          <button type="button" class="btn btn-danger-tonal btn-sm" data-shift-delete
+                  data-shift-id="{{ r.id }}" data-shift-name="{{ r.employee_name }}"
+                  aria-label="删除 {{ r.employee_name }} 的班次">
+            {{ icon('trash') }}<span>删除</span></button>
+        </footer>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      {{ icon('calendar') }}
+      <p>当日暂无班次，可以新增一条安排。</p>
+      <button type="button" class="btn btn-tonal btn-sm" onclick="openShiftDialogForDate('{{ anchor.isoformat() }}')">{{ icon('plus') }}新增当日班次</button>
+    </div>
+    {% endif %}
+  {% else %}
+  <div class="empty-state">
+    {{ icon('users') }}
+    <p>暂无在职员工，请先在“员工”页添加成员。</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="sched-scroll desktop-only">
+  <div class="sched-grid">
+    <div class="gh">员工</div>
+    {% for d in days %}
+    <div class="gh {{ 'today' if d == today }}">
+      <span>{{ weekday_names[d.isoweekday()] }}<span class="d-num">{{ d.month }}/{{ d.day }}</span>
+      {% if d == today %}<span class="d-num">·今天</span>{% endif %}</span>
+      <span class="d-staff">{{ day_counts[d.isoformat()] }} 人 · {{ day_shift_counts[d.isoformat()] }} 班</span>
+    </div>
+    {% endfor %}
+
+    {% for emp in grid_employees %}
+    <div class="emp {{ 'is-inactive' if emp.status != 'active' }}">
+      <span class="e-name">{{ emp.name }}{% if emp.status != 'active' %}<span class="inactive-mark">停用</span>{% endif %}</span>
+      <span class="e-meta">{{ emp.position or '未设岗位' }} · {{ '全职' if emp.employment_type == 'fulltime' else '兼职' }}</span>
+      <span class="e-hours">本周 {{ (employee_week_minutes.get(emp.id, 0) / 60) | round(1) }} h</span>
+    </div>
+    {% for d in days %}
+      {% set key = (emp.id, d.isoformat()) %}
+      {% set cell_shifts = grid.get(key, []) %}
+      <div class="cell {{ 'today-col' if d == today }} {{ 'readonly-cell' if emp.status != 'active' }}"{% if emp.status == 'active' %} tabindex="0" role="button"
+           aria-label="{{ emp.name }} {{ d.isoformat() }} 新增班次"
+           data-cell-employee="{{ emp.id }}" data-cell-date="{{ d.isoformat() }}" data-cell-name="{{ emp.name }}"{% endif %}>
+        {% for r in cell_shifts %}
+        <button type="button" id="shift-{{ r.id }}" class="shift-chip c-{{ r.template_color or 'primary' }}" data-shift-edit
+                data-emp='{{ {"id": r.id, "employee_id": r.employee_id, "employee_name": r.employee_name, "work_date": r.work_date.isoformat(), "template_id": r.template_id, "start_time": r.start_time, "end_time": r.end_time, "break_minutes": r.break_minutes or 0, "position": r.position, "note": r.note} | tojson }}'>
+          <span class="dot"></span>
+          <span><span class="t">{{ r.start_time }}–{{ r.end_time }}</span>
+            <span class="meta">{{ r.template_name or '自定义' }}{% if r.position %} · {{ r.position }}{% endif %}</span>
+          </span>
+          {% set clist = conflict_by_schedule.get(r.id, []) %}
+          {% if clist %}
+          <span class="conflict-flag {{ 'has-error' if clist | selectattr('severity','equalto','error') | list else 'has-warning' }}"
+                title="{{ clist | map(attribute='message') | join('；') }}">{{ icon('alert') }}</span>
+          {% endif %}
+        </button>
+        {% endfor %}
+        <span class="plus-hint">{{ icon('plus') }}</span>
+      </div>
+    {% endfor %}
+    {% endfor %}
+    {% if not employees %}
+    <div class="emp"><span class="e-name">暂无在职员工</span></div>
+    {% endif %}
+  </div>
+</div>
+<div class="scroll-x-hint desktop-only" data-scroll-hint=".sched-scroll">{{ icon('chevron-left') }}左右滑动查看完整一周{{ icon('chevron-right') }}</div>
+
+<div class="card cv-auto" style="margin-top:16px;">
+  <div class="card-title">
+    <h2>本周冲突与工时提示</h2>
+    <span class="sub conflict-filters">
+      <button type="button" class="chip chip-error chip-toggle" data-conflict-filter="error" aria-pressed="true"
+        aria-label="显示或折叠错误级冲突">{{ icon('x-circle') }}错误 {{ conflicts | selectattr('severity','equalto','error') | list | length }}</button>
+      <button type="button" class="chip chip-warning chip-toggle" data-conflict-filter="warning" aria-pressed="true"
+        aria-label="显示或折叠提示级冲突" style="margin-left:8px;">{{ icon('alert') }}提示 {{ conflicts | selectattr('severity','equalto','warning') | list | length }}</button>
+    </span>
+  </div>
+  {% if conflicts %}
+  <div class="conflict-list">
+    {% for c in conflicts %}
+    <div class="conflict-item sev-{{ c.severity }} clickable" role="button" tabindex="0"
+         data-locate="{{ c.schedule_id }}" data-severity="{{ c.severity }}"
+         aria-label="定位到 {{ c.employee_name }} {{ c.date }} {{ c.time }} 的班次">
+      {% if c.severity == 'error' %}{{ icon('x-circle') }}{% else %}{{ icon('alert') }}{% endif %}
+      <div>
+        <div class="c-text"><span class="c-rule">{{ c.rule_label }}</span>{{ c.message }}</div>
+        <div class="c-meta">{{ c.date }}（{{ c.weekday }}）· {{ c.employee_name }} · {{ c.time }}</div>
+      </div>
+    </div>
+    {% endfor %}
+    <p class="small muted" style="margin:10px 2px 0;">点击任意提示可定位并高亮对应班次；点击右上角“错误/提示”可折叠类别。</p>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    {{ icon('check-circle') }}
+    <p>本周未检测到冲突。排班规则可在“设置”页调整。</p>
+  </div>
+  {% endif %}
+</div>
+
+<button type="button" class="btn btn-filled mobile-fab" data-date="{{ anchor.isoformat() }}"
+        onclick="openShiftDialogForDate('{{ anchor.isoformat() }}')" aria-label="新增班次">
+  {{ icon('plus') }}<span>新增班次</span></button>
+
+<dialog id="shift-dialog" class="dialog">
+  <form id="shift-form" novalidate>
+    <input type="hidden" id="sf-id" value="">
+    <div class="dialog-head">
+      <div class="sf-head-text">
+        <div class="sf-title-line">
+          <span class="sf-mode-badge" id="sf-mode-icon" aria-hidden="true">{{ icon('plus') }}</span>
+          <h2 id="sf-title">新增班次</h2>
+        </div>
+        <p class="sf-summary" id="sf-summary" hidden></p>
+      </div>
+      <button type="button" class="icon-btn" data-dialog-close aria-label="关闭" title="关闭">{{ icon('x') }}</button>
+    </div>
+    <div class="dialog-body">
+      <div class="field">
+        <label>员工</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <select id="sf-employee" required>
+            {% for emp in grid_employees %}
+            <option value="{{ emp.id }}" {% if emp.status != 'active' %}disabled{% endif %}>{{ emp.name }}（{{ '全职' if emp.employment_type == 'fulltime' else '兼职' }}{% if emp.position %} · {{ emp.position }}{% endif %}{% if emp.status != 'active' %} · 已停用{% endif %}）</option>
+            {% endfor %}
+          </select>
+          <span class="muted small" id="sf-employee-name"></span>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="sf-date">日期</label>
+          <input type="date" id="sf-date" required>
+        </div>
+        <div class="field">
+          <label for="sf-template">班次模板（可选）</label>
+          <select id="sf-template">
+            <option value="">自定义时间</option>
+            {% for t in templates %}
+            <option value="{{ t.id }}">{{ t.name }}（{{ t.start_time }}–{{ t.end_time }}）</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="sf-start">开始时间</label>
+          <input type="time" id="sf-start" required>
+        </div>
+        <div class="field">
+          <label for="sf-end">结束时间</label>
+          <input type="time" id="sf-end" required>
+          <span class="hint">结束时间不晚于开始时间表示次日结束（跨日班次）</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="sf-break">班内休息（分钟）</label>
+          <input type="number" id="sf-break" min="0" max="720" step="5" value="0">
+        </div>
+        <div class="field">
+          <label for="sf-position">岗位（可选）</label>
+          <input type="text" id="sf-position" placeholder="如：前厅">
+        </div>
+      </div>
+      <div class="field">
+        <label for="sf-note">备注（可选）</label>
+        <input type="text" id="sf-note" placeholder="如：高峰支援">
+      </div>
+      <div id="sf-errors" class="field-error" style="display:none;"></div>
+      <div id="sf-conflicts" class="conflict-box" style="display:none;">
+        <h3>{{ icon('alert') }}检测到以下冲突</h3>
+        <ul id="sf-conflict-list"></ul>
+        <p class="small muted" style="margin:8px 0 0;">错误级冲突建议返回修改；如确属门店安排，可选择“仍要保存”。</p>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-danger-tonal" id="sf-delete" style="display:none;"
+              aria-label="删除该班次（不可恢复）" title="删除该班次（不可恢复）">{{ icon('trash') }}<span>删除</span></button>
+      <button type="button" class="btn btn-text" data-dialog-close>取消</button>
+      <button type="button" class="btn btn-tonal" id="sf-force" style="display:none;">{{ icon('alert') }}<span>仍要保存</span></button>
+      <button type="submit" class="btn btn-filled" id="sf-submit">{{ icon('plus') }}<span>添加</span></button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.SHIFTLITE_TEMPLATES = [
+    {% for t in templates %}{ id: {{ t.id }}, name: {{ t.name | tojson }}, start_time: '{{ t.start_time }}', end_time: '{{ t.end_time }}', break_minutes: {{ t.break_minutes }}, position: {{ t.position | tojson }} }{{ ',' if not loop.last }}{% endfor %}
+  ];
+</script>
+<script src="{{ url_for('static', filename='js/schedule.js') }}"></script>
+{% endblock %}

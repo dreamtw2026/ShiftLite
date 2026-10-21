@@ -1,0 +1,269 @@
+[
+ {
+  "t": 1.235,
+  "action": "move",
+  "x": 1632,
+  "y": 577
+ },
+ {
+  "t": 2.215,
+  "action": "move",
+  "x": 1632,
+  "y": 634
+ },
+ {
+  "t": 2.215,
+  "action": "click",
+  "x": 1632,
+  "y": 634,
+  "label": "登录"
+ },
+ {
+  "t": 2.337,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": "登录成功"
+ },
+ {
+  "t": 5.066,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 6.0,
+  "label": "周排班视图"
+ },
+ {
+  "t": 11.518,
+  "action": "move",
+  "x": 1402,
+  "y": 220
+ },
+ {
+  "t": 11.518,
+  "action": "click",
+  "x": 1402,
+  "y": 220,
+  "label": "冯婷周六"
+ },
+ {
+  "t": 12.689,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.4,
+  "label": "对话框预填"
+ },
+ {
+  "t": 15.373,
+  "action": "move",
+  "x": 1074,
+  "y": 441
+ },
+ {
+  "t": 15.373,
+  "action": "click",
+  "x": 1074,
+  "y": 441,
+  "label": "班次模板下拉"
+ },
+ {
+  "t": 15.843,
+  "action": "select",
+  "x": null,
+  "y": null,
+  "label": "选择中班模板"
+ },
+ {
+  "t": 16.788,
+  "action": "move",
+  "x": 830,
+  "y": 523
+ },
+ {
+  "t": 16.789,
+  "action": "hover",
+  "x": 830,
+  "y": 523,
+  "label": "fill:sf-start"
+ },
+ {
+  "t": 16.789,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 1.2,
+  "label": ""
+ },
+ {
+  "t": 18.234,
+  "action": "move",
+  "x": 1074,
+  "y": 523
+ },
+ {
+  "t": 18.234,
+  "action": "hover",
+  "x": 1074,
+  "y": 523,
+  "label": "fill:sf-end"
+ },
+ {
+  "t": 18.234,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 1.2,
+  "label": ""
+ },
+ {
+  "t": 19.68,
+  "action": "move",
+  "x": 830,
+  "y": 645
+ },
+ {
+  "t": 19.68,
+  "action": "hover",
+  "x": 830,
+  "y": 645,
+  "label": "fill:sf-break"
+ },
+ {
+  "t": 19.68,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 1.2,
+  "label": ""
+ },
+ {
+  "t": 21.118,
+  "action": "move",
+  "x": 1074,
+  "y": 441
+ },
+ {
+  "t": 21.118,
+  "action": "hover",
+  "x": 1074,
+  "y": 441,
+  "label": "fill:sf-template"
+ },
+ {
+  "t": 21.118,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 1.2,
+  "label": ""
+ },
+ {
+  "t": 22.327,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": "信息自动填充完成"
+ },
+ {
+  "t": 24.602,
+  "action": "move",
+  "x": 1146,
+  "y": 796
+ },
+ {
+  "t": 24.602,
+  "action": "click",
+  "x": 1146,
+  "y": 796,
+  "label": "添加/提交"
+ },
+ {
+  "t": 26.27,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 6.0,
+  "label": "阅读冲突详情"
+ },
+ {
+  "t": 32.518,
+  "action": "move",
+  "x": 991,
+  "y": 892
+ },
+ {
+  "t": 32.518,
+  "action": "hover",
+  "x": 991,
+  "y": 892,
+  "label": "掠过仍要保存"
+ },
+ {
+  "t": 33.623,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 1.0,
+  "label": ""
+ },
+ {
+  "t": 34.943,
+  "action": "move",
+  "x": 1117,
+  "y": 892
+ },
+ {
+  "t": 34.943,
+  "action": "click",
+  "x": 1117,
+  "y": 892,
+  "label": "返回修改(再次检验被拦)"
+ },
+ {
+  "t": 36.855,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 4.0,
+  "label": "系统坚持返回修改"
+ },
+ {
+  "t": 41.233,
+  "action": "move",
+  "x": 1158,
+  "y": 195
+ },
+ {
+  "t": 41.233,
+  "action": "click",
+  "x": 1158,
+  "y": 195,
+  "label": "返回修改(取消关闭)"
+ },
+ {
+  "t": 42.44,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 3.0,
+  "label": "回到网格"
+ },
+ {
+  "t": 50.595,
+  "action": "scroll",
+  "x": null,
+  "y": null,
+  "dy": 260
+ },
+ {
+  "t": 50.595,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 8.0,
+  "label": "网格浏览收尾"
+ }
+]

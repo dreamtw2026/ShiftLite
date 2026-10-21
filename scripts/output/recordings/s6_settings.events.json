@@ -1,0 +1,108 @@
+[
+ {
+  "t": 1.164,
+  "action": "move",
+  "x": 1632,
+  "y": 577
+ },
+ {
+  "t": 2.192,
+  "action": "move",
+  "x": 1632,
+  "y": 634
+ },
+ {
+  "t": 2.192,
+  "action": "click",
+  "x": 1632,
+  "y": 634,
+  "label": "登录"
+ },
+ {
+  "t": 2.306,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": "登录成功"
+ },
+ {
+  "t": 4.927,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.2,
+  "label": "设置页"
+ },
+ {
+  "t": 7.437,
+  "action": "move",
+  "x": 434,
+  "y": 536
+ },
+ {
+  "t": 7.437,
+  "action": "hover",
+  "x": 434,
+  "y": 536,
+  "label": "#st-rest"
+ },
+ {
+  "t": 7.437,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 1.6,
+  "label": ""
+ },
+ {
+  "t": 9.29,
+  "action": "move",
+  "x": 434,
+  "y": 781
+ },
+ {
+  "t": 9.29,
+  "action": "hover",
+  "x": 434,
+  "y": 781,
+  "label": "#st-wf"
+ },
+ {
+  "t": 9.29,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 1.6,
+  "label": ""
+ },
+ {
+  "t": 11.134,
+  "action": "move",
+  "x": 800,
+  "y": 781
+ },
+ {
+  "t": 11.134,
+  "action": "hover",
+  "x": 800,
+  "y": 781,
+  "label": "#st-wp"
+ },
+ {
+  "t": 11.134,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 1.6,
+  "label": ""
+ },
+ {
+  "t": 12.738,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.6,
+  "label": ""
+ }
+]

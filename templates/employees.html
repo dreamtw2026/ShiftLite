@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}员工管理{% endblock %}
+{% block topbar_actions %}
+<button class="btn btn-filled" data-dialog-open="employee-dialog" data-dialog-fill="fillEmployeeDialog">{{ icon('user-plus') }}新增员工</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-title">
+    <h2>员工列表</h2>
+    <span class="sub">{%- set active_count = employees | selectattr('status','equalto','active') | list | length -%}
+      在职 {{ active_count }} 人{% if employees | length > active_count %}，离职 {{ employees | length - active_count }} 人{% endif %}；岗位与可用时间用于排班冲突检测</span>
+  </div>
+  {% if employees %}
+  <div class="table-wrap cv-auto">
+    <table class="data-table table-cards t-condense">
+      <thead>
+        <tr>
+          <th>员工</th><th>岗位</th><th class="col-contact">联系方式</th>
+          <th>可用时间</th><th>状态</th><th>排班记录</th><th style="width:108px;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in employees %}
+        <tr {% if e.status != 'active' %}class="row-muted"{% endif %}>
+          <td data-label="员工">
+            <div class="emp-cell">
+              <span class="emp-avatar {{ 'tint-' ~ ['a','b','c'][e.id % 3] }}" aria-hidden="true">{{ e.name[:1] }}</span>
+              <div>
+                <div class="emp-name"><strong>{{ e.name }}</strong></div>
+                {% if e.note %}<div class="small muted">{{ e.note }}</div>{% endif %}
+              </div>
+            </div>
+          </td>
+          <td data-label="岗位" class="nowrap">
+            {% if e.position %}<span class="pos-strong">{{ e.position }}</span>{% else %}<span class="muted">—</span>{% endif %}
+            <span class="chip chip-sm {{ 'chip-primary' if e.employment_type == 'fulltime' else 'chip-secondary' }}">{{ '全职' if e.employment_type == 'fulltime' else '兼职' }}</span>
+          </td>
+          <td data-label="联系方式" class="small muted nowrap col-contact">{{ e.phone or '—' }}</td>
+          <td data-label="可用时间" class="small days-cell">
+            {%- set names = [] -%}
+            {%- for d in e.available_day_list -%}{%- set _ = names.append(weekday_names[d]) -%}{%- endfor -%}
+            {{ names | join('、') if names else '未设置' }}
+            <div class="muted">{{ (e.available_from ~ '–' ~ e.available_to) if e.available_from and e.available_to else '不限' }}</div>
+          </td>
+          <td data-label="状态">
+            {% if e.status == 'active' %}<span class="chip chip-success">{{ icon('check-circle') }}在职</span>
+            {% else %}<span class="chip chip-neutral">{{ icon('x-circle') }}离职</span>{% endif %}
+          </td>
+          <td data-label="排班记录" class="small muted">{{ schedule_counts.get(e.id, 0) }} 条</td>
+          <td data-label="操作">
+            <div class="row-actions">
+              <button class="icon-btn" title="编辑" aria-label="编辑员工 {{ e.name }}" data-dialog-open="employee-dialog" data-dialog-fill="fillEmployeeDialog"
+                data-emp='{{ {"id": e.id, "name": e.name, "position": e.position, "employment_type": e.employment_type, "phone": e.phone, "available_days": e.available_day_list, "available_from": e.available_from, "available_to": e.available_to, "status": e.status, "note": e.note} | tojson }}'>{{ icon('edit') }}</button>
+              <form method="post" data-confirm="确定删除员工“{{ e.name }}”吗？已有排班记录的员工将被停用而非删除。">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="id" value="{{ e.id }}">
+                <button class="icon-btn danger" title="删除" aria-label="删除员工 {{ e.name }}">{{ icon('trash') }}</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="scroll-x-hint desktop-only" data-scroll-hint=".table-wrap">{{ icon('chevron-left') }}左右滑动查看操作列{{ icon('chevron-right') }}</div>
+  {% else %}
+  <div class="empty-state">
+    {{ icon('users') }}
+    <p>还没有员工，先添加第一位成员吧。</p>
+    <button class="btn btn-filled" data-dialog-open="employee-dialog" data-dialog-fill="fillEmployeeDialog">{{ icon('plus') }}新增员工</button>
+  </div>
+  {% endif %}
+</div>
+
+<dialog id="employee-dialog" class="dialog large">
+  <form method="post" action="{{ url_for('employees_page') }}" novalidate>
+    <div class="dialog-head">
+      <h2 id="ed-title">新增员工</h2>
+      <button type="button" class="icon-btn" data-dialog-close aria-label="关闭">{{ icon('x') }}</button>
+    </div>
+    <div class="dialog-body">
+      <input type="hidden" name="action" id="ed-action" value="create">
+      <input type="hidden" name="id" id="ed-id" value="">
+      <div class="field-row">
+        <div class="field">
+          <label for="ed-name">姓名 *</label>
+          <input type="text" id="ed-name" name="name" required maxlength="20" placeholder="如：王小明">
+        </div>
+        <div class="field">
+          <label for="ed-position">岗位</label>
+          <input type="text" id="ed-position" name="position" maxlength="20" placeholder="如：前厅">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="ed-type">用工类型</label>
+          <select id="ed-type" name="employment_type">
+            <option value="fulltime">全职</option>
+            <option value="parttime">兼职</option>
+          </select>
+          <span class="hint">类型决定适用的每日/每周工时上限规则</span>
+        </div>
+        <div class="field">
+          <label for="ed-phone">联系电话</label>
+          <input type="tel" id="ed-phone" name="phone" maxlength="20" placeholder="选填">
+        </div>
+      </div>
+      <div class="field">
+        <label>可排班日（不勾选视为均可）</label>
+        <div class="check-group" id="ed-days">
+          {% for i in [1,2,3,4,5,6,7] %}
+          <label class="check-chip">
+            <input type="checkbox" name="available_days" value="{{ i }}" {% if i <= 5 %}checked{% endif %}>
+            <span>{{ weekday_names[i] }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="ed-from">每日可用开始时间</label>
+          <input type="time" id="ed-from" name="available_from">
+          <span class="hint">留空表示不限；用于可用时间冲突检测</span>
+        </div>
+        <div class="field">
+          <label for="ed-to">每日可用结束时间</label>
+          <input type="time" id="ed-to" name="available_to">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="ed-status">在职状态</label>
+          <select id="ed-status" name="status">
+            <option value="active">在职</option>
+            <option value="inactive">离职（停用）</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ed-note">备注</label>
+          <input type="text" id="ed-note" name="note" maxlength="50" placeholder="选填">
+        </div>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-text" data-dialog-close>取消</button>
+      <button type="submit" class="btn btn-filled">{{ icon('save') }}保存</button>
+    </div>
+  </form>
+</dialog>
+
+<button type="button" class="btn btn-filled mobile-fab" data-dialog-open="employee-dialog"
+        data-dialog-fill="fillEmployeeDialog" aria-label="新增员工">{{ icon('user-plus') }}<span>新增员工</span></button>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function fillEmployeeDialog(btn) {
+    var data = btn.getAttribute("data-emp");
+    var form = document.getElementById("employee-dialog").querySelector("form");
+    form.reset();
+    document.getElementById("ed-action").value = "create";
+    document.getElementById("ed-id").value = "";
+    document.getElementById("ed-title").textContent = "新增员工";
+    if (!data) return;
+    var e = JSON.parse(data);
+    document.getElementById("ed-action").value = "update";
+    document.getElementById("ed-id").value = e.id;
+    document.getElementById("ed-title").textContent = "编辑员工 · " + e.name;
+    document.getElementById("ed-name").value = e.name || "";
+    document.getElementById("ed-position").value = e.position || "";
+    document.getElementById("ed-type").value = e.employment_type || "fulltime";
+    document.getElementById("ed-phone").value = e.phone || "";
+    document.querySelectorAll("#ed-days input").forEach(function (cb) { cb.checked = false; });
+    (e.available_days || []).forEach(function (d) {
+      var cb = document.querySelector('#ed-days input[value="' + d + '"]');
+      if (cb) cb.checked = true;
+    });
+    document.getElementById("ed-from").value = e.available_from || "";
+    document.getElementById("ed-to").value = e.available_to || "";
+    document.getElementById("ed-status").value = e.status || "active";
+    document.getElementById("ed-note").value = e.note || "";
+  }
+</script>
+{% endblock %}

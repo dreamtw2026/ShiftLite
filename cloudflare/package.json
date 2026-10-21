@@ -1,0 +1,12 @@
+{
+  "name": "shiftlite-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "init-db:local": "wrangler d1 execute shiftlite --local --file=./migrations/0001_schema.sql",
+    "init-db:remote": "wrangler d1 execute shiftlite --remote --file=./migrations/0001_schema.sql",
+    "test": "node --test"
+  }
+}

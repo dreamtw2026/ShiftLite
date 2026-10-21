@@ -1,0 +1,3 @@
+file 'C:/Users/He-TW/Downloads/Project/claude code/shiftlite/scripts/output/assemble/p_intro_excel_t.mp4'
+file 'C:/Users/He-TW/Downloads/Project/claude code/shiftlite/scripts/output/assemble/p_intro_chat.mp4'
+file 'C:/Users/He-TW/Downloads/Project/claude code/shiftlite/scripts/output/assemble/p_intro_name.mp4'

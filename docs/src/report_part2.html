@@ -1,0 +1,263 @@
+<!-- ================= 3 系统设计 ================= -->
+<section class="chapter">
+  <h2>3 系统设计</h2>
+
+  <h3>3.1 总体架构</h3>
+  <p>系统采用经典三层结构，核心业务逻辑独立成纯函数模块，与 Web 框架解耦：</p>
+  <div class="arch">
+    <div class="layer"><b>表现层</b><br><span class="items">Jinja2 服务端模板（6 个页面）+ 原生 CSS（Material 3 米 beige 主题）+ 原生 JavaScript（对话框、提交与冲突确认、提示条）</span></div>
+    <div class="arrow">▲ HTTP（HTML / JSON）</div>
+    <div class="layer"><b>应用层</b><br><span class="items">Flask 路由：6 个页面路由 + 排班 JSON API（POST/PUT/DELETE /api/schedules、GET /api/conflicts）+ 导出与备份端点；输入校验、冲突确认流程（409 → force 重提交）</span></div>
+    <div class="arrow">▲ 函数调用</div>
+    <div class="split">
+      <div class="layer"><b>业务核心</b><br><span class="items">core/scheduling.py 时间区间与冲突检测<br>core/worktime.py 工时汇总<br>core/exporter.py Excel 生成</span></div>
+      <div class="layer"><b>数据层</b><br><span class="items">SQLite 单文件数据库（employees / shift_templates / schedules / settings 四表）<br>db.py 连接与初始化</span></div>
+    </div>
+  </div>
+  <p class="small" style="text-align:center;">图 3-1 系统分层架构（文字示意）</p>
+  <p>主要数据流：排班页加载时，应用层读取该周排班与相邻班次，调用 <code>check_conflicts</code> 计算冲突并在服务端渲染进网格与冲突面板；保存排班时，前端以 JSON 提交，应用层校验后调用同一冲突检测函数，存在错误级冲突则返回 409 与冲突明细，用户确认后携带 force 标志重新提交方可落库。读取与写入共用同一套规则实现，保证“检测口径 = 展示口径”。</p>
+
+  <h3>3.2 技术选型</h3>
+  <table>
+    <tr><th style="width:22%;">技术</th><th style="width:16%;">版本</th><th>选择理由</th></tr>
+    <tr><td>Python</td><td>3.14</td><td>语法简洁、标准库完善，适合快速构建原型；团队学习成本低</td></tr>
+    <tr><td>Flask</td><td>3.1</td><td>轻量 Web 框架，路由/模板/测试支持齐备，无需脚手架即可运行，匹配“轻量单店工具”定位</td></tr>
+    <tr><td>SQLite</td><td>3（标准库 sqlite3）</td><td>零配置、单文件、事务完整；单店单机场景无需独立数据库服务，备份即复制文件</td></tr>
+    <tr><td>Jinja2 + 原生 CSS/JS</td><td>3.1 / ES2020</td><td>服务端渲染减少前后端联调成本；Material 3 无官方轻量 Web 组件且比赛环境可能离线，故按 M3 设计令牌（token）自行实现组件样式，不引入构建工具与运行时依赖</td></tr>
+    <tr><td>openpyxl</td><td>3.1</td><td>纯 Python 写入 .xlsx，支持合并单元格、填充色等样式，满足报表美化需求</td></tr>
+    <tr><td>pytest</td><td>9.1</td><td>参数化与夹具机制成熟，适合对纯函数核心做密集单元测试</td></tr>
+  </table>
+  <p class="note">选型限制说明：Flask 开发服务器为单线程参考实现，原型按单用户设计，未做并发控制与生产部署加固；若后续多用户使用，应更换生产级 WSGI 服务器并增加认证层。</p>
+
+  <h3>3.3 数据库设计</h3>
+  <p>共 4 张表：员工（employees）、班次模板（shift_templates）、排班记录（schedules）、规则配置（settings）。完整 DDL 见附录 A。</p>
+  <table>
+    <tr><th style="width:16%;">表</th><th>主要字段</th><th style="width:34%;">说明</th></tr>
+    <tr><td>employees<br>（员工）</td><td>id(PK)、name、position、employment_type(fulltime/parttime)、phone、available_days(JSON 数组，ISO 星期 1–7)、available_from/to、status(active/inactive)、note、created_at</td><td>可用时间用于冲突检测；时薪等敏感字段按最小化收集原则未纳入</td></tr>
+    <tr><td>shift_templates<br>（班次模板）</td><td>id(PK)、name、start_time、end_time(早于开始即跨日)、break_minutes、position、color(芯片配色 token)、note</td><td>常用班次的可复用定义</td></tr>
+    <tr><td>schedules<br>（排班记录）</td><td>id(PK)、employee_id(FK→employees)、work_date(开始日期)、start_time、end_time、break_minutes、position、template_id(FK→shift_templates, ON DELETE SET NULL)、note、created_at</td><td>班次时间在创建时保存快照，模板删除不影响历史排班；索引 (employee_id, work_date) 与 (work_date) 支撑周查询</td></tr>
+    <tr><td>settings<br>（规则配置）</td><td>key(PK)、value</td><td>门店名称、最小休息间隔、四项工时上限等键值对，界面可改</td></tr>
+  </table>
+  <p><b>实体关系：</b>employees 1—N schedules；shift_templates 1—N schedules（弱关联，置空不级联删除）。</p>
+  <p><b>设计决策一（工时不单独建表）：</b>工时统计由排班记录实时推导而非落库。排班是工时的唯一数据源，推导式统计天然避免“排班已改、工时未同步”的双写不一致；若后续接入考勤打卡，再引入实际工时表与“计划/实际”对照，属扩展方向。</p>
+  <p><b>设计决策二（跨日归属）：</b>跨日班次整体归属开始日期所在的日/周/月统计周期。该规则在冲突检测（周上限）与工时统计两处一致执行，并在界面文案中明示。</p>
+
+  <h3>3.4 核心模块设计</h3>
+
+  <h4>3.4.1 排班模块</h4>
+  <p>排班编制围绕周视图网格展开：行=在职员工（含岗位与用工类型），列=周一至周日。新增班次流程为：点击空白格 → 对话框自动带入员工与日期 → 选择模板自动填充时段与休息（或自定义时间）→ 前端基础校验 → 提交 JSON API → 服务端校验与冲突检测 → 无错误级冲突直接保存，有则返回 409 由用户确认。调整与删除通过点击既有班次芯片进入同一对话框完成，编辑时冲突检测自动排除自身记录。</p>
+
+  <h4>3.4.2 冲突检测模块</h4>
+  <p>检测函数 <code>check_conflicts(候选排班, 该员工既有排班, 员工约束, 规则配置)</code> 为纯函数，输入输出均为值对象，判定步骤：</p>
+  <ol>
+    <li>把“日期 + 起止时间”展开为绝对时间区间（结束早于等于开始视为次日结束），计算候选班次的有效工时；</li>
+    <li><b>R1 重叠：</b>对每条既有班次求区间交集，交集 &gt; 0 分钟即产出错误级冲突，消息含对方班次与重叠分钟数；</li>
+    <li><b>R2 可用时间：</b>候选日期的 ISO 星期不在集合内，或起止超出每日可用时段，产出错误级冲突；</li>
+    <li><b>R3 班间休息：</b>分别找候选班次之前最近结束、之后最近开始的班次（跳过已判重叠者），间隔低于配置值即产出提示；</li>
+    <li><b>R4/R5 工时上限：</b>按“开始日期”归集当日/当周（周一至周日）全部既有班次的有效工时，加候选值后与按用工类型选取的上限比较，超出即产出提示；</li>
+    <li>返回冲突列表（规则、级别、含具体数字的中文消息、关联班次 id），由页面/API 层决定渲染方式与是否阻断。</li>
+  </ol>
+
+  <h4>3.4.3 工时统计模块</h4>
+  <p>统计口径统一为：<b>有效工时 = 班次跨度 − 班内休息</b>（跨度按跨日规则展开）；<b>跨日班次整体归属开始日期所在周期</b>；周定义为周一至周日，月为自然月。汇总函数对区间内排班逐条累加，输出每人的班次数、排班时长、休息时长、有效工时与逐日明细（用于周视图的逐日列与导出）。统计与冲突检测共用同一组时间函数，口径一致。</p>
+
+  <h4>3.4.4 导出模块</h4>
+  <p>导出在服务端用 openpyxl 生成工作簿并内存返回。字段映射：</p>
+  <table>
+    <tr><th style="width:18%;">报表</th><th>列结构</th><th style="width:30%;">样式与辅助信息</th></tr>
+    <tr><td>排班表</td><td>日期、星期、员工、岗位、班次时段、休息(分钟)、有效工时(小时)、备注</td><td>标题行含门店名与周期；存在冲突的排班在备注列追加“冲突提示 N 条”</td></tr>
+    <tr><td>工时统计表</td><td>员工、岗位、类型、班次数、排班时长、休息时长、有效工时 + 周视图追加周一至周日逐日列</td><td>末行为合计行；表头使用主色容器色填充，冻结表头</td></tr>
+  </table>
+
+  <h3>3.5 界面设计（Material 3 米 beige）</h3>
+  <p>界面遵循 Material 3 设计语言的语义化色彩角色与组件形态，以米 beige 为主色调，营造清晰、亲和的日常工具气质。全部色彩以 CSS 自定义属性（设计令牌）统一管理：</p>
+  <table>
+    <tr><th style="width:26%;">语义角色</th><th style="width:18%;">色值</th><th>应用位置</th></tr>
+    <tr><td>页面背景 background</td><td>#F7F3EA</td><td>全局页面底色</td></tr>
+    <tr><td>表面/卡片 surface</td><td>#FFFDF8</td><td>卡片、表格、对话框</td></tr>
+    <tr><td>主色 primary</td><td>#78664F</td><td>填充按钮、选中导航、今日列强调</td></tr>
+    <tr><td>主色容器 primary-container</td><td>#E9DDC8</td><td>表头、选中态背景、班次芯片（早班）</td></tr>
+    <tr><td>次要色 secondary</td><td>#6D7765</td><td>兼职芯片、次要容器</td></tr>
+    <tr><td>强调色 tertiary</td><td>#B47B55</td><td>晚班芯片、强调元素</td></tr>
+    <tr><td>主要文字 / 次要文字</td><td>#292720 / #68645C</td><td>正文与辅助说明</td></tr>
+    <tr><td>边框 outline</td><td>#DED7CA</td><td>卡片描边、分隔线、表格线</td></tr>
+    <tr><td>成功 / 警告 / 错误</td><td>#526B55 / #94651E / #A1463D</td><td>状态芯片与冲突面板，均配图标+文字表达</td></tr>
+  </table>
+  <p>组件层面实现了 M3 风格的导航栏（导航项胶囊选中态）、卡片、填充/色调/描边/文本四类按钮、对话框、提示条（snackbar）、芯片（chip）、分段按钮与数据表格。排班网格以间距与表面层级组织信息，不使用厚重阴影；今日列以主色高亮；跨日班次以“夜班”配色芯片区分。所有状态（冲突、成功、警告）同时通过图标与文字表达；交互元素均有可见焦点态，排班网格单元格与班次芯片可键盘到达（Tab + Enter/Space 触发）。</p>
+  <p>页面共 6 个：概览（今日排班+本周冲突摘要+统计卡片）、排班（周网格+冲突面板+班次对话框）、员工、班次模板、工时统计（按日/周/月切换）、设置（品牌外观+规则配置+数据管理）。界面同时兼顾小屏浏览（导航栏自动收窄为图标栏，网格横向滚动），小屏效果见 4.5 节图 4-8。</p>
+</section>
+
+<!-- ================= 4 系统实现 ================= -->
+<section class="chapter">
+  <h2>4 系统实现</h2>
+
+  <h3>4.1 开发与运行环境</h3>
+  <table>
+    <tr><th style="width:30%;">项</th><th>内容</th></tr>
+    <tr><td>操作系统</td><td>Windows 11（x64）；代码不含平台特有依赖，亦可运行于 Linux/macOS</td></tr>
+    <tr><td>开发语言与框架</td><td>Python 3.14.7；Flask 3.1.3；openpyxl 3.1.5；pytest 9.1.1</td></tr>
+    <tr><td>运行环境</td><td>任意现代浏览器（Chrome / Edge / Firefox）；无需联网，无构建步骤</td></tr>
+    <tr><td>部署形态</td><td>本机运行 <code>python app.py</code>，监听 127.0.0.1:5001；数据文件 instance/shiftlite.db；亦提供 Dockerfile 与 SHIFTLITE_DB/SHIFTLITE_SECRET 环境变量用于云端部署（见 README）</td></tr>
+  </table>
+
+  <h3>4.2 项目结构</h3>
+  <pre><code>shiftlite/
+├── app.py               # Flask 应用：页面路由、JSON API、导出与备份端点
+├── db.py                # SQLite 连接、建库初始化、规则配置读写
+├── schema.sql           # 数据库 DDL（附录 A）
+├── seed.py              # 演示数据（10 员工 / 4 模板 / 两周 68 条排班，含埋设冲突）
+├── core/                # 核心业务（纯函数，不依赖 Flask）
+│   ├── scheduling.py    #   时间区间展开、有效工时、五类冲突检测
+│   ├── worktime.py      #   按日/周/月工时汇总
+│   └── exporter.py      #   openpyxl 报表生成
+├── templates/           # Jinja2 页面（base + 6 页面 + 宏）
+├── static/
+│   ├── css/theme.css    # Material 3 米 beige 主题（设计令牌 + 组件）
+│   └── js/              # app.js 公共交互 / schedule.js 排班页交互
+├── tests/               # pytest：26 项核心单元 + 6 项工时 + 3 项导出 + 6 项认证 + 17 项功能
+├── scripts/benchmark.py # 性能计时脚本
+└── docs/                # 技术研究报告、截图、性能测量结果</code></pre>
+
+  <h3>4.3 启动方法</h3>
+  <pre><code>pip install -r requirements.txt   # 安装依赖（Flask、openpyxl；开发需 pytest）
+python seed.py                    # 首次运行写入演示数据（python seed.py --force 可重置）
+python app.py                     # 启动服务，浏览器访问 http://127.0.0.1:5001（默认密码 shiftlite123，登录后请修改）
+python -m pytest tests/           # 运行全部自动化测试</code></pre>
+
+  <h3>4.4 核心代码说明</h3>
+
+  <h4>4.4.1 时间区间展开与有效工时（core/scheduling.py）</h4>
+  <pre><code>def shift_span_minutes(start_hhmm: str, end_hhmm: str) -> int:
+    """班次跨度（分钟），跨日自动加 24 小时；起止相同视为非法。"""
+    start, end = parse_hhmm(start_hhmm), parse_hhmm(end_hhmm)
+    if start == end:
+        raise ValueError("班次开始与结束时间相同")
+    span = end.hour * 60 + end.minute - (start.hour * 60 + start.minute)
+    if span &lt; 0:
+        span += 24 * 60
+    return span
+
+def effective_minutes(start_hhmm, end_hhmm, break_minutes) -&gt; int:
+    """有效工时（分钟）= 跨度 − 休息时长，下限 0。"""
+    return max(0, shift_span_minutes(start_hhmm, end_hhmm) - int(break_minutes or 0))
+
+def shift_datetime_range(work_date, start_hhmm, end_hhmm):
+    """把“日期 + 起止时间”展开为绝对时间区间，跨日结束时间落到次日。"""
+    start = datetime.combine(work_date, parse_hhmm(start_hhmm))
+    end = datetime.combine(work_date, parse_hhmm(end_hhmm))
+    if end &lt;= start:
+        end += timedelta(days=1)
+    return start, end</code></pre>
+  <p>这三个函数是全部口径的基础：跨度计算允许“19:00–01:00”式跨日班次；有效工时统一扣除休息；区间展开把班次映射到绝对时间轴，供重叠与间隔判定使用。起止相同被显式拒绝，避免出现“24 小时班次”的二义性。</p>
+
+  <h4>4.4.2 冲突检测（core/scheduling.py，节选）</h4>
+  <pre><code># 规则一：班次时间重叠（硬冲突）
+for s, e, row in spans:                    # spans 为既有班次的绝对时间区间
+    ov = overlap_minutes(c_start, c_end, s, e)
+    if ov &gt; 0:
+        conflicts.append(Conflict(
+            "overlap", SEVERITY_ERROR,
+            f"与已有班次（{row['work_date'].strftime('%m月%d日')} "
+            f"{row['start_time']}–{row['end_time']}）重叠 {ov} 分钟",
+            row.get("id")))
+
+# 规则五：每周（周一至周日）有效工时上限，按班次开始日期归属（提示）
+w_start, w_end = week_range(c_date)
+week_rows = [row for row in existing
+             if w_start &lt;= row["work_date"] &lt;= w_end
+             and (candidate.get("id") is None or row.get("id") != candidate["id"])]
+week_total = c_eff + sum(
+    effective_minutes(r["start_time"], r["end_time"], r["break_minutes"])
+    for r in week_rows)
+weekly_limit = int(settings.get(
+    "weekly_max_minutes_fulltime" if emp_type == "fulltime"
+    else "weekly_max_minutes_parttime") or 0)
+if weekly_limit &gt; 0 and week_total &gt; weekly_limit:
+    conflicts.append(Conflict(
+        "weekly_limit", SEVERITY_WARNING,
+        f"本周（{w_start.strftime('%m月%d日')}–{w_end.strftime('%m月%d日')}）"
+        f"有效工时合计 {_fmt_hours(week_total)}，超过{type_label}每周上限 {_fmt_hours(weekly_limit)}"))</code></pre>
+  <p>检测函数返回统一的 <code>Conflict</code> 数据对象（规则、级别、解释性消息、关联记录），消息直接给出“与哪一天哪一班的重叠分钟数”“合计多少小时、超哪条上限”等具体数字，保证提示可理解、可核对。页面/API 层据此决定阻断（错误级）或仅提示（提示级）。</p>
+
+  <h4>4.4.3 冲突确认的 API 流程（app.py）</h4>
+  <pre><code>conflicts = _conflicts_for(conn, payload)
+hard = [c for c in conflicts if c["severity"] == "error"]
+if hard and not request.args.get("force"):
+    return jsonify({"conflicts": conflicts}), 409   # 前端弹出冲突确认
+cur = conn.execute("INSERT INTO schedules(...) VALUES (...)", (...))
+conn.commit()
+return jsonify({"id": cur.lastrowid, "conflicts": conflicts}), 201</code></pre>
+  <p>保存接口遇到错误级冲突返回 409 与完整冲突明细；前端对话框内联展示冲突列表，用户选择“仍要保存”时携带 force 标志重新提交。该设计既强制人工确认硬冲突，又保留门店特殊安排的最终决定权。</p>
+
+  <h4>4.4.4 Excel 导出（core/exporter.py，节选）</h4>
+  <pre><code>def export_hours(store_name, period_label, summary, day_columns=None):
+    wb = Workbook(); ws = wb.active; ws.title = "工时统计"
+    headers = ["员工", "岗位", "类型", "班次数", "排班时长(小时)",
+               "休息时长(小时)", "有效工时(小时)"]
+    if day_columns:
+        headers += [label for _, label in day_columns]      # 周一…周日逐日列
+    ...
+    total = ["合计", "", "", sum(i["shifts"] for i in summary), ...]  # 合计行
+    for col, value in enumerate(total, start=1):
+        cell = ws.cell(row=r, column=col, value=value)
+        cell.fill = PatternFill("solid", fgColor=THEME["total_fill"])</code></pre>
+
+  <h3>4.5 功能实现情况与界面</h3>
+  <p>以下截图均为实际运行系统（演示数据）的真实画面。</p>
+
+  <div class="fig">
+    <img src="../screenshots/01-dashboard.png" alt="概览页">
+    <div class="cap">图 4-1 概览页：本周统计卡片、今日排班与冲突摘要（右上可直达排班与导出）</div>
+  </div>
+  <div class="fig">
+    <img src="../screenshots/02-schedule-week.png" alt="排班周视图">
+    <div class="cap">图 4-2 排班页周视图：员工 × 周一至周日网格，班次芯片按模板配色，含冲突者显示警示角标（周五/周六可见重叠冲突标记）</div>
+  </div>
+  <div class="fig">
+    <img src="../screenshots/03-shift-dialog.png" alt="新增班次对话框">
+    <div class="cap">图 4-3 新增班次对话框：套用“中班”模板自动填充时段与休息，支持跨日说明</div>
+  </div>
+  <div class="fig">
+    <img src="../screenshots/04-conflict-detected.png" alt="冲突检测">
+    <div class="cap">图 4-4 冲突拦截演示：为周六休班的员工排中班，系统给出“可用时间冲突”（错误级）与“每周工时上限”（提示级），需“返回修改”或“仍要保存”二次确认</div>
+  </div>
+  <div class="fig">
+    <img src="../screenshots/05-employees.png" alt="员工管理">
+    <div class="cap">图 4-5 员工管理：用工类型、可排班日与可用时段是冲突检测的数据来源；有排班记录的员工删除时转为停用以保留历史</div>
+  </div>
+  <div class="fig">
+    <img src="../screenshots/07-hours-week.png" alt="工时统计">
+    <div class="cap">图 4-6 工时统计（按周）：逐日列与合计行，口径说明（有效工时=排班时长−休息，跨日计入开始日期所在周期）随页展示</div>
+  </div>
+  <div class="fig">
+    <img src="../screenshots/08-settings.png" alt="设置页">
+    <div class="cap">图 4-7 设置页：品牌外观（系统标题与头像，含格式与大小校验）、五类冲突规则全部可配置并明示“须按当地法规与机构制度确认具体设置”；数据管理提供备份下载与演示数据重置</div>
+  </div>
+  <div class="fig">
+    <img src="../screenshots/09-mobile-dashboard.png" alt="小屏适配" class="borderless">
+    <div class="cap">图 4-8 小屏（390px）适配：导航收窄为图标栏，卡片纵向堆叠</div>
+  </div>
+
+  <p>各功能与需求条目的对应关系及实现位置：</p>
+  <table>
+    <tr><th style="width:10%;">需求</th><th style="width:36%;">实现要点</th><th>对应代码 / 界面</th></tr>
+    <tr><td>FR1 员工管理</td><td>增删改查、可用时间维护、停用保护</td><td>app.py employees_page；templates/employees.html（图 4-5）</td></tr>
+    <tr><td>FR2 班次模板</td><td>跨日定义、休息分钟、配色、使用计数</td><td>app.py shift_templates_page；shift_templates.html</td></tr>
+    <tr><td>FR3 排班维护</td><td>周网格点选、模板套用、编辑/删除</td><td>schedule_page + /api/schedules；schedule.js（图 4-2、4-3）</td></tr>
+    <tr><td>FR4 冲突检测</td><td>五类规则、409 确认流、面板去重</td><td>core/scheduling.py；图 4-4</td></tr>
+    <tr><td>FR5 工时统计</td><td>日/周/月切换、逐日明细、口径注释</td><td>core/worktime.py；hours.html（图 4-6）</td></tr>
+    <tr><td>FR6 报表导出</td><td>排班表/工时表 xlsx、主题样式、冲突备注</td><td>core/exporter.py；/export/* 端点</td></tr>
+    <tr><td>FR7 数据与权限</td><td>SQLite 单文件、备份下载、规则配置</td><td>settings_page、/backup（图 4-7）</td></tr>
+  </table>
+
+  <h3>4.6 实现状态清单</h3>
+  <table>
+    <tr><th style="width:56%;">条目</th><th>状态</th></tr>
+    <tr><td>员工 / 模板 / 排班 / 冲突 / 工时 / 导出 / 规则配置 / 备份</td><td class="ok">已实现并通过测试</td></tr>
+    <tr><td>品牌自定义（系统标题、头像上传/移除，同步站点图标）</td><td class="ok">已实现并通过测试</td></tr>
+    <tr><td>小屏适配、键盘可达、状态反馈（空/成功/失败/冲突）</td><td class="ok">已实现</td></tr>
+    <tr><td>管理员密码登录（PBKDF2 哈希、限速、改密、登出）</td><td class="ok">已实现并通过测试</td></tr>
+    <tr><td>员工自助账号与分角色权限</td><td>未实现，列为后续工作（6.4）</td></tr>
+    <tr><td>员工移动端自助查看、考勤打卡、排班建议算法、薪资对接</td><td>未实现，列为后续工作（6.4）</td></tr>
+  </table>
+</section>

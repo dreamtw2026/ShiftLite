@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>登录 · {{ app_title }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+{% if brand_avatar %}
+<link rel="icon" href="{{ url_for('brand_avatar_file') }}">
+{% else %}
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icons/favicon.svg') }}">
+{% endif %}
+</head>
+<body class="login-page">
+{% from '_macros.html' import icon %}
+<div class="login-shell">
+
+  <!-- 左：品牌视觉区（约 70%），CSS 渐变 + 轻量装饰图形，不依赖外部图片 -->
+  <section class="login-hero">
+    <div class="hero-deco" aria-hidden="true">
+      <span class="deco-blob"></span>
+      <span class="deco-ring deco-ring-a"></span>
+      <span class="deco-ring deco-ring-b"></span>
+      <div class="deco-cal">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+    <div class="hero-inner">
+      <div class="brand-row">
+        <span class="login-mark">
+          {% if brand_avatar %}<img src="{{ url_for('brand_avatar_file') }}" alt="">{% else %}{{ app_title[:1] }}{% endif %}
+        </span>
+        <div class="login-title">{{ app_title }}</div>
+      </div>
+      <h1 class="hero-headline">排班更轻，<br>工时一目了然。</h1>
+      <p class="hero-desc">面向小团队的排班与工时统计工具：可视化周排班、冲突自动检测、报表一键导出。</p>
+      <ul class="hero-points">
+        <li>{{ icon('calendar') }}可视化周排班与冲突检测</li>
+        <li>{{ icon('clock') }}自动汇总工时与休息日</li>
+        <li>{{ icon('download') }}一键导出 Excel 报表</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 右：表单区（约 30%），垂直居中 -->
+  <section class="login-panel">
+    <main class="login-card">
+      <h1 class="login-heading">欢迎回来</h1>
+      <p class="login-desc">登录管理员账号，继续管理排班与工时。</p>
+
+      {% if error %}
+      <div class="login-error" role="alert">{{ icon('x-circle') }}<span>{{ error }}</span></div>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('login') }}" novalidate>
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="field">
+          <label for="login-username">用户名</label>
+          <input type="text" id="login-username" name="username" value="admin"
+                 autocomplete="username" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="login-password">密码</label>
+          <input type="password" id="login-password" name="password" required
+                 autocomplete="current-password" placeholder="请输入密码">
+        </div>
+        <button type="submit" class="btn btn-filled login-submit">
+          {{ icon('save') }}登录
+        </button>
+      </form>
+
+      <p class="login-hint">演示环境默认账号 <code>admin</code>、密码 <code>shiftlite123</code>。<br>登录后可在「设置 → 账号安全」修改密码。</p>
+    </main>
+  </section>
+
+</div>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+  document.getElementById("login-password").focus();
+</script>
+</body>
+</html>

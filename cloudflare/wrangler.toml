@@ -1,0 +1,15 @@
+# 轻排班 · Cloudflare Workers 部署配置
+# 部署前：把 database_id 替换为 `npx wrangler d1 create shiftlite` 输出的 UUID
+
+name = "shiftlite"
+main = "src/worker.js"
+compatibility_date = "2025-05-05"
+
+[assets]
+directory = "public"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "shiftlite"
+database_id = "00000000-0000-0000-0000-000000000000"

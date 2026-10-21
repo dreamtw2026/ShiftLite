@@ -1,0 +1,130 @@
+[
+ {
+  "t": 1.257,
+  "action": "move",
+  "x": 1632,
+  "y": 577
+ },
+ {
+  "t": 2.231,
+  "action": "move",
+  "x": 1632,
+  "y": 634
+ },
+ {
+  "t": 2.231,
+  "action": "click",
+  "x": 1632,
+  "y": 634,
+  "label": "登录"
+ },
+ {
+  "t": 2.341,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": "登录成功"
+ },
+ {
+  "t": 4.951,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 5.0,
+  "label": "按周视图"
+ },
+ {
+  "t": 12.836,
+  "action": "scroll",
+  "x": null,
+  "y": null,
+  "dy": 280
+ },
+ {
+  "t": 16.018,
+  "action": "scroll",
+  "x": null,
+  "y": null,
+  "dy": -280
+ },
+ {
+  "t": 16.32,
+  "action": "move",
+  "x": 417,
+  "y": 111
+ },
+ {
+  "t": 16.32,
+  "action": "click",
+  "x": 417,
+  "y": 111,
+  "label": "切换按月"
+ },
+ {
+  "t": 17.054,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 5.0,
+  "label": "按月视图"
+ },
+ {
+  "t": 24.949,
+  "action": "scroll",
+  "x": null,
+  "y": null,
+  "dy": 300
+ },
+ {
+  "t": 28.148,
+  "action": "scroll",
+  "x": null,
+  "y": null,
+  "dy": -300
+ },
+ {
+  "t": 28.148,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 1.0,
+  "label": ""
+ },
+ {
+  "t": 29.459,
+  "action": "move",
+  "x": 1827,
+  "y": 36
+ },
+ {
+  "t": 29.459,
+  "action": "click",
+  "x": 1827,
+  "y": 36,
+  "label": "导出工时表"
+ },
+ {
+  "t": 29.815,
+  "action": "download",
+  "x": null,
+  "y": null,
+  "path": "C:\\Users\\He-TW\\Downloads\\Project\\claude code\\shiftlite\\scripts\\output\\downloads\\青禾轻食·大学城店_工时统计_2026年10月.xlsx"
+ },
+ {
+  "t": 29.815,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 4.0,
+  "label": "导出完成反馈"
+ },
+ {
+  "t": 33.825,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": ""
+ }
+]

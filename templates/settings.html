@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}设置{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-title">
+    <h2>品牌外观</h2>
+    <span class="sub">头像与标题会同步用于侧边栏、浏览器标签与站点图标</span>
+  </div>
+  <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+    <div style="text-align:center;">
+      <span class="brand-mark" style="width:4rem; height:4rem; font-size:1.875rem; border-radius:1.25rem;">
+        {%- if brand_avatar -%}
+        <img class="brand-avatar" src="{{ url_for('brand_avatar_file') }}" alt="当前头像">
+        {%- else -%}{{ app_title[:1] }}{%- endif -%}
+      </span>
+      <p class="small muted" style="margin:8px 0 0;">当前{{ '头像' if brand_avatar else '字标' }}</p>
+    </div>
+    <div style="flex:1; min-width:190px;">
+      <form method="post" action="{{ url_for('upload_avatar') }}" enctype="multipart/form-data" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <input type="file" name="avatar" accept="image/png,image/jpeg,image/gif,image/webp" required
+               style="font-family:inherit; font-size:0.8125rem; border:1px solid var(--md-outline-strong); border-radius:8px; padding:8px; background:var(--md-surface); width:100%; max-width:340px;">
+        <button type="submit" class="btn btn-tonal">{{ icon('save') }}上传头像</button>
+      </form>
+      <p class="small muted" style="margin:10px 0 12px;">
+        支持 PNG / JPG / GIF / WebP，不超过 2MB；建议使用正方形图片。上传前会按文件头校验真实格式。
+      </p>
+      <form method="post" action="{{ url_for('remove_avatar') }}" data-confirm="确定移除头像并恢复默认字标吗？">
+        <button type="submit" class="btn btn-danger-tonal btn-sm" {{ '' if brand_avatar else 'disabled' }}>恢复默认字标</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="{{ url_for('settings_page') }}">
+<div class="card">
+  <div class="card-title">
+    <h2>门店与排班规则</h2>
+    <span class="sub">以下规则为系统默认演示值，正式使用前请按当地法规及机构适用规定调整</span>
+  </div>
+  <div class="field-row" style="max-width:720px;">
+    <div class="field">
+      <label for="st-name">门店名称（用于报表标题与导出文件名）</label>
+      <input type="text" id="st-name" name="store_name" value="{{ settings['store_name'] }}" maxlength="30" required>
+    </div>
+    <div class="field">
+      <label for="st-title">系统标题（侧边栏品牌与浏览器标签）</label>
+      <input type="text" id="st-title" name="app_title" value="{{ settings['app_title'] }}" maxlength="24" placeholder="轻排班">
+      <span class="hint">留空恢复默认“轻排班”；首字将作为默认字标显示</span>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <h3 style="font-size:14.5px; margin-bottom:12px;">冲突检测规则</h3>
+  <div class="field-row" style="max-width:720px;">
+    <div class="field">
+      <label for="st-rest">相邻两班最小休息间隔（分钟）</label>
+      <input type="number" id="st-rest" name="rest_minutes_min" min="0" max="10080" step="30" value="{{ settings['rest_minutes_min'] }}">
+      <span class="hint">同一员工前后两个班次之间的间隔低于该值时给出提示</span>
+    </div>
+  </div>
+
+  <h3 style="font-size:14.5px; margin:16px 0 12px;">工时上限（分钟）</h3>
+  <div class="field-row" style="max-width:720px;">
+    <div class="field">
+      <label for="st-df">全职 · 每日有效工时上限</label>
+      <input type="number" id="st-df" name="daily_max_minutes_fulltime" min="0" max="1440" step="30" value="{{ settings['daily_max_minutes_fulltime'] }}">
+    </div>
+    <div class="field">
+      <label for="st-dp">兼职 · 每日有效工时上限</label>
+      <input type="number" id="st-dp" name="daily_max_minutes_parttime" min="0" max="1440" step="30" value="{{ settings['daily_max_minutes_parttime'] }}">
+    </div>
+    <div class="field">
+      <label for="st-wf">全职 · 每周有效工时上限</label>
+      <input type="number" id="st-wf" name="weekly_max_minutes_fulltime" min="0" max="10080" step="30" value="{{ settings['weekly_max_minutes_fulltime'] }}">
+    </div>
+    <div class="field">
+      <label for="st-wp">兼职 · 每周有效工时上限</label>
+      <input type="number" id="st-wp" name="weekly_max_minutes_parttime" min="0" max="10080" step="30" value="{{ settings['weekly_max_minutes_parttime'] }}">
+    </div>
+  </div>
+  <p class="small muted" style="max-width:720px;">
+    上限单位为分钟（如 600 = 10 小时）。超出上限不阻断排班，仅在排班页冲突面板与工时统计中给出提示。
+    具体数值请结合当地劳动法规、行业规范与门店制度确认；填 0 表示不启用该项规则。
+  </p>
+  <div style="margin-top:16px;">
+    <button type="submit" class="btn btn-filled">{{ icon('save') }}保存设置</button>
+  </div>
+</div>
+</form>
+
+<div class="card">
+  <div class="card-title">
+    <h2>账号安全</h2>
+    <span class="sub">单管理员账号；密码以 PBKDF2 加盐哈希存储，登录失败 15 分钟内超过 5 次将临时锁定</span>
+  </div>
+  <form method="post" action="{{ url_for('change_password') }}" style="max-width:420px;">
+    <div class="field">
+      <label for="pw-current">当前密码</label>
+      <input type="password" id="pw-current" name="current_password" required autocomplete="current-password">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="pw-new">新密码（至少 6 位）</label>
+        <input type="password" id="pw-new" name="new_password" required minlength="6" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="pw-confirm">确认新密码</label>
+        <input type="password" id="pw-confirm" name="confirm_password" required minlength="6" autocomplete="new-password">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-tonal" style="margin-bottom:6px;">{{ icon('save') }}修改密码</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-title">
+    <h2>数据管理</h2>
+  </div>
+  <p class="muted small mt-0">
+    全部数据保存在本地 SQLite 数据库文件（instance/shiftlite.db）中。备份时下载该文件副本即可；
+    恢复时用备份文件替换原文件后重启服务。
+  </p>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn btn-outlined" href="{{ url_for('backup') }}">{{ icon('database') }}下载数据库备份</a>
+    <button type="button" class="btn btn-danger-tonal" id="reset-demo-btn">{{ icon('refresh') }}重置为演示数据</button>
+  </div>
+  <p class="small muted" style="margin-bottom:0;">
+    说明：已内置单管理员密码登录；员工自助账号与分角色权限为后续计划。员工时薪等敏感信息字段未纳入本版本，
+    相关权限设计见技术研究报告“系统设计”与“总结与展望”章节。
+  </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById("reset-demo-btn").addEventListener("click", function () {
+    if (!window.confirm("重置将清除当前全部数据并恢复为演示数据，确定继续吗？")) return;
+    fetch("{{ url_for('reset_demo') }}", { method: "POST" })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.ok) { window.showToast("已重置为演示数据。", "success"); setTimeout(function () { window.location.reload(); }, 700); }
+        else { window.showToast("重置失败。", "error"); }
+      })
+      .catch(function () { window.showToast("网络异常。", "error"); });
+  });
+</script>
+{% endblock %}

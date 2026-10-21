@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F3EA">
+<title>{% block title %}{{ self.page_title() }} · {{ app_title }}{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+<script>/* 导航栏折叠偏好：在首帧渲染前应用，避免布局闪跳 */
+try { if (localStorage.getItem("shiftlite-nav-hidden") === "1") document.documentElement.className += " nav-rail-hidden"; } catch (e) {}</script>
+{% if brand_avatar %}
+<link rel="icon" href="{{ url_for('brand_avatar_file') }}">
+{% else %}
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icons/favicon.svg') }}">
+{% endif %}
+</head>
+<body data-page="{{ request.endpoint or '' }}">
+{% from '_macros.html' import icon %}
+<div class="app">
+  <aside class="nav-rail" id="nav-rail">
+    <a class="brand" href="{{ url_for('dashboard') }}">
+      <span class="brand-mark">
+        {%- if brand_avatar -%}
+        <img class="brand-avatar" src="{{ url_for('brand_avatar_file') }}" alt="品牌头像">
+        {%- else -%}{{ app_title[:1] }}{%- endif -%}
+      </span>
+      <span class="brand-name">{{ app_title }}</span>
+    </a>
+    <nav class="nav-items">
+      {% set nav_items = [
+        ('dashboard', '/', 'dashboard', '概览'),
+        ('schedule_page', '/schedule', 'calendar', '排班'),
+        ('employees_page', '/employees', 'users', '员工'),
+        ('shift_templates_page', '/shift-templates', 'briefcase', '班次模板'),
+        ('hours_page', '/hours', 'chart', '工时统计'),
+        ('settings_page', '/settings', 'sliders', '设置'),
+      ] %}
+      {% for endpoint, href, icon_name, label in nav_items %}
+      <a class="nav-item {{ 'active' if request.endpoint == endpoint }}"
+         href="{{ href }}" {% if request.endpoint == endpoint %}aria-current="page"{% endif %}>
+        {{ icon(icon_name) }}<span>{{ label }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+    <div class="nav-footer">
+      <button type="button" class="nav-collapse" id="nav-toggle"
+              aria-label="收起侧边导航栏" aria-expanded="true" aria-controls="nav-rail"
+              title="收起导航栏">{{ icon('chevron-left') }}</button>
+      <form method="post" action="{{ url_for('logout') }}" class="logout-form">
+        <button type="submit" class="nav-logout" title="退出登录">{{ icon('logout') }}退出登录</button>
+      </form>
+      <span class="version">v1.0</span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h1 class="topbar-title">{% block page_title %}{% endblock %}</h1>
+      <div class="topbar-actions">{% block topbar_actions %}{% endblock %}</div>
+    </header>
+    <main class="content" id="main">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<div id="snackbar" class="snackbar" role="status" aria-live="polite"></div>
+<button type="button" id="nav-restore" aria-label="显示侧边导航栏" title="显示导航栏">{{ icon('chevron-right') }}</button>
+{% block dialogs %}{% endblock %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <script id="flash-data" type="application/json">[{{ '' }}{% for category, message in messages %}{"category": "{{ category }}", "message": "{{ message | e }}"}{% if not loop.last %},{% endif %}{% endfor %}]</script>
+  {% endif %}
+{% endwith %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}工时统计{% endblock %}
+{% block topbar_actions %}
+<a class="btn btn-filled" href="{{ url_for('export_hours', period=period, date=anchor.isoformat()) }}">{{ icon('download') }}导出工时表</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-title" style="flex-wrap:wrap;">
+    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <div class="seg">
+        <a class="{{ 'active' if period == 'day' }}" href="{{ url_for('hours_page', period='day', date=anchor.isoformat()) }}">按日</a>
+        <a class="{{ 'active' if period == 'week' }}" href="{{ url_for('hours_page', period='week', date=anchor.isoformat()) }}">按周</a>
+        <a class="{{ 'active' if period == 'month' }}" href="{{ url_for('hours_page', period='month', date=anchor.isoformat()) }}">按月</a>
+      </div>
+      <a class="icon-btn" href="{{ prev_link }}" aria-label="上一周期">{{ icon('chevron-left') }}</a>
+      <input type="date" value="{{ anchor.isoformat() }}" id="hours-date" style="border:1px solid var(--md-outline-strong); border-radius:8px; padding:7px 10px; font-family:inherit; background:var(--md-surface);">
+      <a class="icon-btn" href="{{ next_link }}" aria-label="下一周期">{{ icon('chevron-right') }}</a>
+      <strong>{{ period_label }}</strong>
+    </div>
+    <span class="sub">有效工时 = 排班时长 − 班内休息；跨日班次计入开始日期所在周期</span>
+  </div>
+
+  {% if summary %}
+  <div class="table-wrap desktop-only cv-auto">
+    <table class="data-table sticky-first">
+      <thead>
+        <tr>
+          <th>员工</th><th>岗位</th><th>类型</th>
+          <th class="num">班次数</th>
+          <th class="num">排班时长</th>
+          <th class="num">休息时长</th>
+          <th class="num">有效工时</th>
+          {% if day_columns %}{% for _, label in day_columns %}<th class="num">{{ label }}</th>{% endfor %}{% endif %}
+          <th class="num">周上限</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in summary %}
+        <tr>
+          <td><strong>{{ item.name }}</strong></td>
+          <td>{{ item.position or '—' }}</td>
+          <td><span class="chip {{ 'chip-primary' if item.employment_type == 'fulltime' else 'chip-secondary' }}">{{ item.type_label }}</span></td>
+          <td class="num">{{ item.shifts }}</td>
+          <td class="num">{{ hours(item.scheduled_minutes) }} h</td>
+          <td class="num">{{ hours(item.break_minutes) }} h</td>
+          <td class="num"><strong>{{ hours(item.effective_minutes) }} h</strong></td>
+          {% if day_columns %}
+            {% for day_iso, _ in day_columns %}
+            <td class="num {{ 'muted' if not item.by_date.get(day_iso) }}">{{ hours(item.by_date.get(day_iso, 0)) if item.by_date.get(day_iso) else '—' }}</td>
+            {% endfor %}
+          {% endif %}
+          <td class="num small muted">{{ item.weekly_limit_hours }} h</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>合计</td><td></td><td></td>
+          <td class="num">{{ summary | map(attribute='shifts') | sum }}</td>
+          <td class="num">{{ hours(summary | map(attribute='scheduled_minutes') | sum) }} h</td>
+          <td class="num">{{ hours(summary | map(attribute='break_minutes') | sum) }} h</td>
+          <td class="num">{{ hours(summary | map(attribute='effective_minutes') | sum) }} h</td>
+          {% if day_columns %}{% for _ in day_columns %}<td></td>{% endfor %}{% endif %}
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+    <div class="scroll-x-hint desktop-only" data-scroll-hint=".table-wrap">{{ icon('chevron-left') }}左右滑动查看更多列{{ icon('chevron-right') }}</div>
+
+  {# 移动端：汇总卡片 + 按日明细（≤720px 显示，替代宽表格） #}
+  <div class="m-hours" role="list">
+    <div class="m-eitem m-total">
+      <div class="m-eitem-head">
+        <strong>合计 · {{ period_label }}</strong>
+      </div>
+      <div class="m-hstats">
+        <div class="m-hstat"><span class="l">班次数</span><span class="v">{{ summary | map(attribute='shifts') | sum }}</span></div>
+        <div class="m-hstat"><span class="l">排班时长</span><span class="v">{{ hours(summary | map(attribute='scheduled_minutes') | sum) }} h</span></div>
+        <div class="m-hstat"><span class="l">休息时长</span><span class="v">{{ hours(summary | map(attribute='break_minutes') | sum) }} h</span></div>
+        <div class="m-hstat tone"><span class="l">有效工时</span><span class="v">{{ hours(summary | map(attribute='effective_minutes') | sum) }} h</span></div>
+      </div>
+    </div>
+    {% for item in summary %}
+    <div class="m-eitem" role="listitem">
+      <div class="m-eitem-head">
+        <strong class="m-eitem-name">{{ item.name }}</strong>
+        <span class="chip chip-sm {{ 'chip-primary' if item.employment_type == 'fulltime' else 'chip-secondary' }}">{{ item.type_label }}</span>
+        {% if item.position %}<span class="m-eitem-pos">{{ item.position }}</span>{% endif %}
+      </div>
+      <div class="m-hstats">
+        <div class="m-hstat"><span class="l">班次数</span><span class="v">{{ item.shifts }}</span></div>
+        <div class="m-hstat"><span class="l">排班时长</span><span class="v">{{ hours(item.scheduled_minutes) }} h</span></div>
+        <div class="m-hstat"><span class="l">休息时长</span><span class="v">{{ hours(item.break_minutes) }} h</span></div>
+        <div class="m-hstat tone"><span class="l">有效工时</span><span class="v">{{ hours(item.effective_minutes) }} h</span></div>
+        <div class="m-hstat"><span class="l">周上限</span><span class="v small">{{ item.weekly_limit_hours }} h</span></div>
+      </div>
+      {% if day_columns %}
+      <div class="m-hdays">
+        {% set day_values = [] %}
+        {% for day_iso, label in day_columns %}{% if item.by_date.get(day_iso) %}{% set _ = day_values.append((day_iso, label, item.by_date.get(day_iso))) %}{% endif %}{% endfor %}
+        {% if day_values %}
+        {% for day_iso, label, day_minutes in day_values %}
+        <div class="m-hday">
+          <span>{{ label }}（{{ day_iso[5:7] }}/{{ day_iso[8:10] }}）</span>
+          <span class="v">{{ hours(day_minutes) ~ ' h' }}</span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="m-hday muted"><span>本周期内无逐日排班明细</span></div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    {{ icon('chart') }}
+    <p>所选周期内暂无排班记录。</p>
+    <a class="btn btn-tonal btn-sm" href="{{ url_for('schedule_page', date=anchor.isoformat()) }}">去排班</a>
+  </div>
+  {% endif %}
+  <p class="small muted" style="margin:12px 2px 0;">
+    说明：统计按排班记录实时推导；“周上限”为设置页配置的每周工时上限（按用工类型区分），
+    当某周有效工时超出上限时，排班页冲突面板会给出提示。超限不阻断排班，仅作提醒，
+    实际适用上限须符合当地法规与门店制度。
+  </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById("hours-date").addEventListener("change", function () {
+    if (!this.value) return;
+    var params = new URLSearchParams(window.location.search);
+    params.set("date", this.value);
+    window.location.href = "/hours?" + params.toString();
+  });
+</script>
+{% endblock %}

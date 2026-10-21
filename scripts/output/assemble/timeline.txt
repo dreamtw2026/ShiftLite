@@ -1,0 +1,7 @@
+file 'C:/Users/He-TW/Downloads/Project/claude code/shiftlite/scripts/output/assemble/block_intro.mp4'
+file 'C:/Users/He-TW/Downloads/Project/claude code/shiftlite/scripts/output/assemble/block_s1_overview.mp4'
+file 'C:/Users/He-TW/Downloads/Project/claude code/shiftlite/scripts/output/assemble/block_s2_employees.mp4'
+file 'C:/Users/He-TW/Downloads/Project/claude code/shiftlite/scripts/output/assemble/block_s3_schedule.mp4'
+file 'C:/Users/He-TW/Downloads/Project/claude code/shiftlite/scripts/output/assemble/block_s4_conflict_panel.mp4'
+file 'C:/Users/He-TW/Downloads/Project/claude code/shiftlite/scripts/output/assemble/block_s5_hours.mp4'
+file 'C:/Users/He-TW/Downloads/Project/claude code/shiftlite/scripts/output/assemble/block_s6_settings.mp4'

@@ -1,0 +1,7 @@
+instance/
+.pytest_cache/
+**/__pycache__/
+docs/
+server.log
+*.md
+tests/

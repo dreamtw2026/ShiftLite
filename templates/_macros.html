@@ -1,0 +1,66 @@
+{# 轻排班原创图标集 v1（内联 SVG，跟随 currentColor）
+   设计语言：24×24 线性图标，stroke 2 圆角端点；实心圆角小块表示“班次/数据”语义；
+   元素取自站点本体：日历与班次块、圆角瓦片、滑杆、圆角容器。与 Workers 版共用同一套路径。 #}}
+{% macro icon(name, cls='') -%}
+<svg class="icon {{ cls }}" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{%if name == 'dashboard' -%}
+<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2" fill="currentColor" stroke="none"/>
+{%elif name == 'calendar' -%}
+<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4"/><path d="M3.5 10h17"/><rect x="6.5" y="13" width="5" height="2.6" rx="1.3" fill="currentColor" stroke="none"/><rect x="13.8" y="13" width="3.7" height="2.6" rx="1.3"/>
+{%elif name == 'users' -%}
+<circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c0-3.1 2.4-5.2 5.5-5.2s5.5 2.1 5.5 5.2"/><path d="M15.5 4.9a3.5 3.5 0 0 1 0 6.2"/><path d="M17.5 15.2c2 .7 3.3 2.4 3.3 4.8"/>
+{%elif name == 'briefcase' -%}
+<rect x="3.5" y="7.5" width="17" height="12.5" rx="3"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5"/><rect x="7" y="12.2" width="10" height="3" rx="1.5" fill="currentColor" stroke="none"/>
+{%elif name == 'clock' -%}
+<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 1.8"/>
+{%elif name == 'chart' -%}
+<path d="M4 4v16h16"/><rect x="7.5" y="12.5" width="3.2" height="7.5" rx="1.6" fill="currentColor" stroke="none"/><rect x="12.4" y="8" width="3.2" height="12" rx="1.6" fill="currentColor" stroke="none"/><rect x="17.3" y="10.5" width="3.2" height="9.5" rx="1.6" fill="currentColor" stroke="none"/>
+{%elif name == 'sliders' -%}
+<path d="M4 7h6.2M14.8 7H20"/><circle cx="12.5" cy="7" r="2.3"/><path d="M4 17h4.2M12.8 17H20"/><circle cx="10.5" cy="17" r="2.3"/>
+{%elif name == 'download' -%}
+<path d="M4.5 15.5V18a2.5 2.5 0 0 0 2.5 2.5h10A2.5 2.5 0 0 0 19.5 18v-2.5"/><path d="M12 4v10.5M7.8 10.7 12 15l4.2-4.3"/>
+{%elif name == 'copy' -%}
+<rect x="8" y="8" width="11.5" height="11.5" rx="2.5"/><path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"/>
+{%elif name == 'plus' -%}
+<path d="M12 5v14M5 12h14"/>
+{%elif name == 'user-plus' -%}
+<circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c0-3.1 2.4-5.2 5.5-5.2 1.6 0 3 .6 4 1.6"/><path d="M18.5 10.5v6M15.5 13.5h6"/>
+{%elif name == 'edit' -%}
+<path d="M4.5 19.5h3.2L19 8.2a2.26 2.26 0 0 0-3.2-3.2L4.5 16.3z"/><path d="m13.6 7.2 3.2 3.2"/>
+{%elif name == 'trash' -%}
+<path d="M4.5 6.8h15"/><path d="M9.3 6.5V5.2A1.7 1.7 0 0 1 11 3.5h2a1.7 1.7 0 0 1 1.7 1.7v1.3"/><path d="m6.3 6.8.7 12a2 2 0 0 0 2 1.9h6a2 2 0 0 0 2-1.9l.7-12"/><path d="M10 10.5v6M14 10.5v6"/>
+{%elif name == 'alert' -%}
+<path d="M10.4 4.2 3.2 17.4a1.9 1.9 0 0 0 1.7 2.8h14.2a1.9 1.9 0 0 0 1.7-2.8L13.6 4.2a1.9 1.9 0 0 0-3.2 0z"/><path d="M12 9.2v4"/><circle cx="12" cy="16.4" r="0.7" fill="currentColor" stroke="none"/>
+{%elif name == 'check-circle' -%}
+<circle cx="12" cy="12" r="8.5"/><path d="m8.3 12.3 2.6 2.6 4.9-5.3"/>
+{%elif name == 'check' -%}
+<polyline points="20 6.5 9.5 17 4 11.5"/>
+{%elif name == 'x-circle' -%}
+<circle cx="12" cy="12" r="8.5"/><path d="m9.2 9.2 5.6 5.6M14.8 9.2l-5.6 5.6"/>
+{%elif name == 'info' -%}
+<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r="0.7" fill="currentColor" stroke="none"/>
+{%elif name == 'x' -%}
+<path d="M6 6l12 12M18 6 6 18"/>
+{%elif name == 'chevron-left' -%}
+<polyline points="14.5 5.5 8 12 14.5 18.5"/>
+{%elif name == 'chevron-right' -%}
+<polyline points="9.5 5.5 16 12 9.5 18.5"/>
+{%elif name == 'save' -%}
+<path d="M19.5 9.2V18a1.8 1.8 0 0 1-1.8 1.8H6.3A1.8 1.8 0 0 1 4.5 18V6.3a1.8 1.8 0 0 1 1.8-1.8h8.7z"/><path d="M8 4.5v4.2h6.5V4.5"/><path d="M8 19.8v-5.6h8v5.6"/>
+{%elif name == 'database' -%}
+<ellipse cx="12" cy="5.8" rx="7.5" ry="2.8"/><path d="M4.5 5.8v12.4c0 1.55 3.36 2.8 7.5 2.8s7.5-1.25 7.5-2.8V5.8"/><path d="M4.5 12c0 1.55 3.36 2.8 7.5 2.8s7.5-1.25 7.5-2.8"/>
+{%elif name == 'refresh' -%}
+<path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4.5V9h-4.5"/>
+{%elif name == 'logout' -%}
+<path d="M9 21H5.5A1.8 1.8 0 0 1 3.7 19.2V4.8A1.8 1.8 0 0 1 5.5 3H9"/><polyline points="16 17 21 12 16 7"/><path d="M21 12H9"/>
+{% else %}<circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/>{% endif %}
+</svg>
+{%- endmacro %}
+
+{% macro severity_chip(severity, text) -%}
+<span class="chip chip-{{ severity }}">
+  {% if severity == 'error' %}{{ icon('x-circle') }}{% elif severity == 'warning' %}{{ icon('alert') }}{% else %}{{ icon('check-circle') }}{% endif %}
+  <span>{{ text }}</span>
+</span>
+{%- endmacro %}

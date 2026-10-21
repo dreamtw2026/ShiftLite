@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>轻排班——面向中小团队的排班与工时统计工具设计与实现</title>
+<style>
+  @page { size: A4; margin: 22mm 18mm 20mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "SimSun", "Songti SC", serif;
+    font-size: 10.5pt; line-height: 1.75; color: #292720;
+    margin: 0;
+  }
+  h1, h2, h3, h4, .cover, table, .fig, code, pre, .toc { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+  h2 {
+    font-size: 15pt; color: #3F3629;
+    border-bottom: 2px solid #78664F; padding-bottom: 6px;
+    margin: 0 0 14px 0; page-break-after: avoid;
+  }
+  h3 { font-size: 12pt; color: #3F3629; margin: 18px 0 8px; page-break-after: avoid; }
+  h4 { font-size: 11pt; color: #4A3F30; margin: 14px 0 6px; page-break-after: avoid; }
+  p { margin: 6px 0; text-align: justify; }
+  section.chapter { page-break-before: always; }
+  section.chapter:first-of-type { page-break-before: avoid; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 9.5pt; margin: 10px 0; page-break-inside: auto; }
+  th, td { border: 1px solid #C9BFAE; padding: 5px 8px; vertical-align: top; text-align: left; }
+  th { background: #E9DDC8; color: #3F3629; font-weight: 600; }
+  tr { page-break-inside: avoid; }
+  td.num, th.num { text-align: right; }
+  td.ok { color: #526B55; font-weight: 600; }
+
+  pre {
+    background: #F7F3EA; border: 1px solid #DED7CA; border-radius: 6px;
+    padding: 10px 12px; font-size: 8.5pt; line-height: 1.5;
+    white-space: pre-wrap; word-break: break-all; page-break-inside: avoid;
+  }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; background: #F1EBDD; padding: 1px 4px; border-radius: 3px; }
+  pre code { background: none; padding: 0; }
+
+  .fig { margin: 12px 0; text-align: center; page-break-inside: avoid; }
+  .fig img { max-width: 100%; border: 1px solid #DED7CA; border-radius: 6px; }
+  .fig .cap { font-size: 9pt; color: #68645C; margin-top: 5px; }
+  .fig img.borderless { border: none; }
+
+  .cover { text-align: center; page-break-after: always; padding-top: 90px; }
+  .cover .track { display: inline-block; border: 1.5px solid #78664F; color: #78664F;
+    border-radius: 999px; padding: 6px 22px; font-size: 12pt; letter-spacing: 2px; }
+  .cover h1 { font-size: 24pt; color: #292720; margin: 46px 0 10px; line-height: 1.45; }
+  .cover .subtitle { font-size: 13pt; color: #68645C; margin-bottom: 60px; }
+  .cover .meta { margin-top: 70px; font-size: 11pt; color: #4A3F30; line-height: 2.2; }
+  .cover .meta b { color: #292720; }
+  .cover .date { margin-top: 60px; color: #68645C; }
+
+  .abstract-box { background: #F7F3EA; border: 1px solid #DED7CA; border-radius: 10px; padding: 16px 20px; }
+  .keywords { margin-top: 10px; }
+  .keywords b { color: #78664F; }
+  .note { background: #F3E4C8; border-left: 4px solid #94651E; border-radius: 0 6px 6px 0;
+    padding: 8px 12px; font-size: 9.5pt; margin: 10px 0; }
+  .ok-note { background: #DCE7DA; border-left: 4px solid #526B55; border-radius: 0 6px 6px 0;
+    padding: 8px 12px; font-size: 9.5pt; margin: 10px 0; }
+  ul, ol { margin: 6px 0; padding-left: 24px; }
+  li { margin: 3px 0; text-align: justify; }
+  .toc { font-size: 10.5pt; }
+  .toc li { margin: 4px 0; }
+  .refs p { text-indent: -2em; margin-left: 2em; font-size: 10pt; }
+  .small { font-size: 9pt; color: #68645C; }
+  .center { text-align: center; }
+  .arch { display: flex; flex-direction: column; gap: 0; align-items: stretch; margin: 12px 30px; }
+  .arch .layer { border: 1.5px solid #78664F; border-radius: 8px; padding: 8px 14px; background: #FFFDF8; }
+  .arch .layer b { color: #78664F; }
+  .arch .layer .items { color: #4A3F30; font-size: 9.5pt; }
+  .arch .arrow { text-align: center; color: #78664F; font-size: 12pt; line-height: 1.2; margin: 2px 0; }
+  .arch .split { display: flex; gap: 10px; }
+  .arch .split .layer { flex: 1; }
+</style>
+</head>
+<body>
+
+<!-- ================= 封面 ================= -->
+<div class="cover">
+  <div class="track">技术创新赛道 · 软件开发与应用创新方向</div>
+  <h1>轻排班<br>——面向中小团队的排班与工时统计工具<br>设计与实现</h1>
+  <div class="subtitle">软件原型与技术研究报告</div>
+  <div class="meta">
+    <p><b>参赛队伍：</b>〔按主办方报名表填写〕</p>
+    <p><b>团队成员：</b>〔按主办方报名表填写〕</p>
+    <p><b>指导教师：</b>〔按主办方报名表填写〕</p>
+    <p><b>所属学校：</b>〔按主办方报名表填写〕</p>
+  </div>
+  <div class="date">原型版本 v1.0 · 2026 年 10 月</div>
+</div>
+
+<!-- ================= 摘要 ================= -->
+<section class="chapter" id="abstract">
+  <h2>摘要</h2>
+  <div class="abstract-box">
+    <p>中小餐饮、零售及服务业团队普遍缺少专用排班系统，主要依赖纸张或 Excel 管理班次，存在排班冲突靠人工发现、员工可用时间难以记全、全职与兼职工时规则混用、工时汇总繁琐易错等问题。针对上述痛点，本项目设计并实现了轻量级排班与工时统计工具“轻排班”，服务店长（排班负责人）完成员工与班次模板管理、周视图排班编制与调整、排班冲突检测、工时统计和 Excel 报表导出的完整业务流程。</p>
+    <p>系统采用 Python + Flask + SQLite 技术路线，前端按 Material 3（Material You）设计语言自行实现米 beige 视觉主题；核心的冲突检测与工时计算以纯函数模块实现，支持班次重叠、可用时间冲突、班间休息不足、每日/每周工时上限五类可配置规则，并正确处理跨日班次与统计周期边界。目前项目已完成可运行原型：58 项单元与功能测试全部通过，开发环境实测主要页面响应 P95 不超过 40 毫秒、报表导出 P95 不超过 110 毫秒；演示数据中的三类埋设冲突全部被系统检出。系统已内置管理员密码登录（PBKDF2 加盐哈希、失败限速、可改密）；员工自助查看等扩展功能列为后续计划。</p>
+    <p class="keywords"><b>关键词：</b>排班管理；工时统计；冲突检测；Flask；SQLite；Material 3</p>
+  </div>
+</section>
+
+<!-- ================= 目录 ================= -->
+<section class="chapter">
+  <h2>目录</h2>
+  <ol class="toc">
+    <li>引言</li>
+    <li>需求分析</li>
+    <li>系统设计</li>
+    <li>系统实现</li>
+    <li>测试与评估</li>
+    <li>总结、实施计划与展望</li>
+    <li>参考文献</li>
+    <li>附录A 数据库表结构（DDL）</li>
+    <li>附录B 自动化测试用例清单</li>
+    <li>附录C 需求验证计划（待开展）</li>
+    <li>附录D 演示视频脚本要点</li>
+  </ol>
+  <p class="small">注：本报告所述“已完成”均以可运行原型及测试记录为依据；尚未开展的工作在正文中明确标注为“计划”或“后续”。提交格式与模板以主办方正式通知为准。</p>
+</section>
+
+<!-- ================= 1 引言 ================= -->
+<section class="chapter">
+  <h2>1 引言</h2>
+
+  <h3>1.1 研究背景</h3>
+  <p>在餐饮、零售及生活服务行业，5～30 人规模的门店数量庞大。此类团队的排班通常由店长或值班经理一人承担：先用 Excel 或纸质表排出下一周班次，再截图发到员工微信群。这一流程能够运转，但高度依赖店长的个人经验与记忆力——每位员工的兼职课时、上课时间、请假习惯都装在“脑子里”，换人就断档。</p>
+  <p>与排班相伴的工时统计同样依赖手工：月底把每个人的班次逐条相加，扣除班内休息，再区分全职与兼职口径。过程重复、繁琐，且一旦出现跨日班次或临时调班，人工计算极易出错，也难以追溯核对。</p>
+
+  <h3>1.2 问题描述</h3>
+  <p>通过对手工/Excel 排班流程的逐环节分析，可归纳出四类典型问题：</p>
+  <table>
+    <tr><th style="width:14%;">问题</th><th>具体表现</th><th style="width:30%;">后果</th></tr>
+    <tr><td>冲突不易发现</td><td>同一员工两班时间重叠、与已约定的不可用时间冲突、相邻班次间隔过短等，靠人工逐格核对，排除干扰大且易漏检</td><td>班表发布后返工，现场人手冲突或员工临时拒班</td></tr>
+    <tr><td>约束难以记全</td><td>员工可用时间各异（学生兼职尤其明显），约束信息分散在聊天记录中</td><td>排班反复修改，沟通成本高</td></tr>
+    <tr><td>规则口径不一</td><td>全职与兼职适用不同的每日/每周工时上限，Excel 无法按用工类型自动区分控制</td><td>兼职工时被动超标，机构合规风险上升</td></tr>
+    <tr><td>汇总繁琐易错</td><td>跨日班次、休息扣除、周/月边界等细节需人工处理，月底统计耗时</td><td>工时争议缺乏可核对依据</td></tr>
+  </table>
+  <p>大型企业的人力资源系统覆盖了上述需求，但对小团队而言存在部署重、费用高、功能冗余的问题；通用表格工具又缺乏业务约束。中小团队需要的是一件“趁手的轻工具”。</p>
+
+  <h3>1.3 研究目标与意义</h3>
+  <p>本项目目标是设计并实现一个面向小规模团队、可本地部署的排班与工时统计工具，完整覆盖“维护员工与班次基础数据 → 编制与调整排班 → 冲突检测与提示 → 工时自动汇总 → 报表导出”的业务闭环。其意义在于：</p>
+  <ul>
+    <li><b>提高排班效率：</b>周视图网格直接点选排班，常用班次一键套用模板；</li>
+    <li><b>辅助控制风险：</b>五类冲突规则自动检测并解释原因，错误级冲突在保存前强制确认；</li>
+    <li><b>工时可信可核：</b>统计由排班记录实时推导，口径统一（跨日归属、休息扣除、周期边界均有明确定义），并支持导出 Excel 留档；</li>
+    <li><b>改善信息获取：</b>周表一键导出张贴或转发，员工无需翻聊天记录。</li>
+  </ul>
+
+  <h3>1.4 项目范围</h3>
+  <p>本项目面向单店小团队（约 5～50 人），定位为<b>本阶段可运行、可演示、可检查的技术原型</b>。范围边界如下：</p>
+  <ul>
+    <li><b>已包含：</b>员工管理、班次模板、排班编制与调整、冲突检测、工时统计、Excel 导出、规则配置、数据库备份（详见第 2 章需求清单及各条实现状态）；</li>
+    <li><b>本阶段不包含：</b>员工账号登录与移动端自助查看、考勤打卡、薪资计算、多门店管理、自动排班算法——均未实现，仅在总结与展望中作为后续工作说明；</li>
+    <li><b>合规说明：</b>工时上限、休息间隔等规则在本系统中均为可配置项，随附默认值仅作演示口径；正式使用前，机构应按其所在地区适用的法律法规及自身用工形式确认具体设置，本工具的提示不构成合规结论。</li>
+  </ul>
+</section>
+
+<!-- ================= 2 需求分析 ================= -->
+<section class="chapter">
+  <h2>2 需求分析</h2>
+
+  <h3>2.1 用户角色</h3>
+  <table>
+    <tr><th style="width:16%;">角色</th><th>职责与需求</th><th style="width:22%;">本阶段状态</th></tr>
+    <tr><td>店长 / 排班负责人</td><td>维护员工档案与班次模板；创建、查看、调整周排班；查看冲突提示并处理；查看工时统计并导出报表；配置排班规则与数据备份</td><td>已实现（管理员密码登录，单账号）</td></tr>
+    <tr><td>普通员工</td><td>查看本人排班与工时信息、提交可用时间</td><td>本阶段未实现账号体系；员工目前通过导出的周表获取排班信息。员工自助查看已列为后续扩展（见 6.4），不属于已完成功能</td></tr>
+  </table>
+
+  <h3>2.2 功能需求</h3>
+  <table>
+    <tr><th style="width:8%;">编号</th><th style="width:20%;">需求</th><th>说明</th><th style="width:14%;">状态</th></tr>
+    <tr><td>FR1</td><td>员工信息管理</td><td>姓名、岗位、全职/兼职类型、联系方式、可排班日与每日可用时段、在职状态、备注；支持新增、编辑、删除（有排班记录者转为停用以保留历史）</td><td class="ok">已实现</td></tr>
+    <tr><td>FR2</td><td>班次模板管理</td><td>班次名称、开始/结束时间（支持跨日）、班内休息分钟、建议岗位、芯片配色；排班时可一键套用</td><td class="ok">已实现</td></tr>
+    <tr><td>FR3</td><td>排班管理</td><td>以周为单位浏览排班网格（行=员工、列=周一至周日）；点击空格新增、点击班次芯片编辑/删除；支持上一周/本周/下一周导航</td><td class="ok">已实现</td></tr>
+    <tr><td>FR4</td><td>排班冲突检测</td><td>检测班次重叠、可用时间冲突、班间休息不足、每日/每周工时超限五类情况，逐条解释原因；错误级冲突保存前需二次确认（详见 2.3）</td><td class="ok">已实现</td></tr>
+    <tr><td>FR5</td><td>工时统计</td><td>按日/周/月汇总每位员工的班次数、排班时长、休息时长、有效工时，含逐日明细；统一处理休息扣除、跨日班次归属与统计周期边界</td><td class="ok">已实现</td></tr>
+    <tr><td>FR6</td><td>报表导出</td><td>排班表（日期、星期、员工、岗位、时段、休息、有效工时、备注）与工时统计表（含逐日列与合计行）导出为 .xlsx 文件</td><td class="ok">已实现</td></tr>
+    <tr><td>FR7</td><td>数据与权限管理</td><td>数据本地存储于单一 SQLite 文件，支持一键下载备份；系统标题与品牌头像可在设置页自定义（同步用于侧边栏、浏览器标签与站点图标）；冲突规则可在设置页调整。已实现单管理员密码登录（PBKDF2 哈希存储、登录失败限速、设置页改密、登出）；员工自助账号与分角色权限未实现，见展望</td><td>部分实现</td></tr>
+  </table>
+
+  <h3>2.3 冲突检测规则需求</h3>
+  <p>冲突规则全部设计为可配置项（设置页可改，存于数据库 settings 表），默认值仅作演示口径：</p>
+  <table>
+    <tr><th style="width:8%;">编号</th><th style="width:20%;">规则</th><th style="width:14%;">级别</th><th>判定逻辑与默认值</th></tr>
+    <tr><td>R1</td><td>班次重叠</td><td>错误</td><td>同一员工两个班次的有效时间区间交集大于 0 分钟即触发，提示重叠时长及对方班次信息</td></tr>
+    <tr><td>R2</td><td>可用时间冲突</td><td>错误</td><td>排班日不在员工“可排班日”集合内，或班次起止超出“每日可用时段”，即触发；两者均可按员工配置</td></tr>
+    <tr><td>R3</td><td>班间休息不足</td><td>提示</td><td>同一员工前后两个班次之间间隔低于最小休息间隔（默认 600 分钟 = 10 小时），提示实际间隔</td></tr>
+    <tr><td>R4</td><td>每日工时上限</td><td>提示</td><td>当日有效工时合计超过按用工类型配置的上限（默认全职 600 分钟、兼职 480 分钟），提示合计值</td></tr>
+    <tr><td>R5</td><td>每周工时上限</td><td>提示</td><td>本周（周一至周日）有效工时合计超过按用工类型配置的上限（默认全职 2640 分钟 = 44 小时、兼职 1440 分钟 = 24 小时），提示合计值</td></tr>
+  </table>
+  <p>错误级冲突（R1、R2）阻断保存流程，对话框中给出“返回修改”与“仍要保存”两个出口，避免误操作同时保留门店特殊安排的灵活性；提示级冲突（R3、R4、R5）可直接保存，但在冲突面板与班次芯片上持续可见。为避免同一条件随班次数量重复刷屏，展示层对 R3/R4/R5 按“员工+日期/周期”去重。</p>
+
+  <h3>2.4 非功能需求</h3>
+  <table>
+    <tr><th style="width:18%;">维度</th><th>需求（与原型规模相称）</th></tr>
+    <tr><td>易用性</td><td>全中文界面；主要操作（新增班次、调整排班、查看冲突、导出报表）一键可达；表单有明确标签与校验；空状态、操作成功/失败均有可见反馈（提示条、空状态插画位、冲突面板）</td></tr>
+    <tr><td>响应速度</td><td>原型数据规模（数十员工、数百条排班）下，页面与 API 交互应无明显卡顿；以“交互流畅”为验收口径，不承诺生产环境性能指标（实测见 5.3）</td></tr>
+    <tr><td>数据安全与备份</td><td>数据落盘为单一 SQLite 文件；提供一键下载备份；恢复方式文档化（替换文件后重启）；访问需管理员密码登录（PBKDF2 加盐哈希，失败限速 15 分钟 5 次）</td></tr>
+    <tr><td>隐私保护</td><td>最小化收集：不采集员工身份证明、住址、时薪等敏感字段；联系电话选填；全部数据留存本地，不上传第三方</td></tr>
+    <tr><td>可维护性</td><td>核心业务逻辑为不依赖 Web 框架的纯函数模块，配套 58 项自动化测试；数据库结构以 SQL 脚本版本化</td></tr>
+    <tr><td>可及性</td><td>冲突/成功/警告状态同时以图标+文字表达，不单靠颜色；交互元素可见焦点态；排班网格支持键盘操作</td></tr>
+  </table>
+</section>

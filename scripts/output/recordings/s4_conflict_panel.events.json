@@ -1,0 +1,137 @@
+[
+ {
+  "t": 1.181,
+  "action": "move",
+  "x": 1632,
+  "y": 577
+ },
+ {
+  "t": 2.185,
+  "action": "move",
+  "x": 1632,
+  "y": 634
+ },
+ {
+  "t": 2.185,
+  "action": "click",
+  "x": 1632,
+  "y": 634,
+  "label": "登录"
+ },
+ {
+  "t": 2.292,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": "登录成功"
+ },
+ {
+  "t": 4.898,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": "排班页整体"
+ },
+ {
+  "t": 9.782,
+  "action": "scroll",
+  "x": null,
+  "y": null,
+  "dy": 380
+ },
+ {
+  "t": 9.782,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": "冲突面板整体"
+ },
+ {
+  "t": 12.069,
+  "action": "move",
+  "x": 958,
+  "y": 1288
+ },
+ {
+  "t": 12.069,
+  "action": "hover",
+  "x": 958,
+  "y": 1288,
+  "label": "错误条目"
+ },
+ {
+  "t": 12.069,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 5.0,
+  "label": ""
+ },
+ {
+  "t": 17.322,
+  "action": "move",
+  "x": 958,
+  "y": 790
+ },
+ {
+  "t": 17.322,
+  "action": "hover",
+  "x": 958,
+  "y": 790,
+  "label": "提示条目"
+ },
+ {
+  "t": 17.322,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 5.0,
+  "label": ""
+ },
+ {
+  "t": 25.256,
+  "action": "scroll",
+  "x": null,
+  "y": null,
+  "dy": -380
+ },
+ {
+  "t": 25.51,
+  "action": "move",
+  "x": 550,
+  "y": 206
+ },
+ {
+  "t": 25.51,
+  "action": "hover",
+  "x": 550,
+  "y": 206,
+  "label": "网格角标"
+ },
+ {
+  "t": 25.51,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 4.0,
+  "label": ""
+ },
+ {
+  "t": 32.408,
+  "action": "scroll",
+  "x": null,
+  "y": null,
+  "dy": 380
+ },
+ {
+  "t": 32.408,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 3.5,
+  "label": "面板与网格对照收尾"
+ }
+]

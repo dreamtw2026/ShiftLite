@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}班次模板{% endblock %}
+{% block topbar_actions %}
+<button class="btn btn-filled" data-dialog-open="template-dialog" data-dialog-fill="fillTemplateDialog">{{ icon('plus') }}新增模板</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-title">
+    <h2>班次模板列表</h2>
+    <span class="sub">模板定义常用班次的时间与休息；排班时可一键套用，也可自定义时间</span>
+  </div>
+  {% if templates %}
+  <div class="table-wrap">
+    <table class="data-table table-cards t-condense">
+      <thead>
+        <tr><th>班次名称</th><th>时段</th><th>班内休息</th><th class="col-eff">有效工时</th><th>建议岗位</th><th class="col-color">配色</th><th>使用次数</th><th style="width:108px;">操作</th></tr>
+      </thead>
+      <tbody>
+        {% for t in templates %}
+        <tr>
+          <td data-label="班次"><strong>{{ t.name }}</strong>{% if t.note %}<div class="small muted">{{ t.note }}</div>{% endif %}</td>
+          <td data-label="时段">{{ t.start_time }}–{{ t.end_time }}{% if t.end_time <= t.start_time %} <span class="chip chip-neutral small">跨日</span>{% endif %}</td>
+          <td data-label="班内休息">{{ t.break_minutes }} 分钟</td>
+          <td data-label="有效工时" class="small muted col-eff">{{ ((range_duration(t.start_time, t.end_time) / 60) | round(1)) }} 小时</td>
+          <td data-label="建议岗位">{{ t.position or '—' }}</td>
+          <td data-label="配色" class="col-color"><span class="chip chip-{{ t.color }}">{{ {'primary': '主色', 'secondary': '次要', 'tertiary': '强调', 'warning': '夜班'}[t.color] }}</span></td>
+          <td data-label="使用次数" class="small muted">{{ usage.get(t.id, 0) }} 条排班</td>
+          <td data-label="操作">
+            <div class="row-actions">
+              <button class="icon-btn" title="编辑" aria-label="编辑模板 {{ t.name }}" data-dialog-open="template-dialog" data-dialog-fill="fillTemplateDialog"
+                data-tpl='{{ t | tojson }}'>{{ icon('edit') }}</button>
+              <form method="post" action="{{ url_for('delete_template', tpl_id=t.id) }}"
+                    data-confirm="确定删除模板“{{ t.name }}”吗？历史排班数据会保留。">
+                <button class="icon-btn danger" title="删除" aria-label="删除模板 {{ t.name }}">{{ icon('trash') }}</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="scroll-x-hint desktop-only" data-scroll-hint=".table-wrap">{{ icon('chevron-left') }}左右滑动查看更多列{{ icon('chevron-right') }}</div>
+  {% else %}
+  <div class="empty-state">
+    {{ icon('briefcase') }}
+    <p>还没有班次模板。建议先创建早班、中班、晚班等常用班次。</p>
+    <button class="btn btn-filled" data-dialog-open="template-dialog" data-dialog-fill="fillTemplateDialog">{{ icon('plus') }}新增模板</button>
+  </div>
+  {% endif %}
+</div>
+
+<dialog id="template-dialog" class="dialog">
+  <form method="post" action="{{ url_for('shift_templates_page') }}" novalidate>
+    <div class="dialog-head">
+      <h2 id="td-title">新增班次模板</h2>
+      <button type="button" class="icon-btn" data-dialog-close aria-label="关闭">{{ icon('x') }}</button>
+    </div>
+    <div class="dialog-body">
+      <input type="hidden" name="action" id="td-action" value="create">
+      <input type="hidden" name="id" id="td-id" value="">
+      <div class="field">
+        <label for="td-name">班次名称 *</label>
+        <input type="text" id="td-name" name="name" required maxlength="20" placeholder="如：早班">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="td-start">开始时间 *</label>
+          <input type="time" id="td-start" name="start_time" required>
+        </div>
+        <div class="field">
+          <label for="td-end">结束时间 *</label>
+          <input type="time" id="td-end" name="end_time" required>
+          <span class="hint">结束不晚于开始表示次日结束</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="td-break">班内休息（分钟）</label>
+          <input type="number" id="td-break" name="break_minutes" min="0" max="720" step="5" value="0">
+        </div>
+        <div class="field">
+          <label for="td-position">建议岗位</label>
+          <input type="text" id="td-position" name="position" maxlength="20" placeholder="如：前厅">
+        </div>
+      </div>
+      <div class="field">
+        <label for="td-color">排班芯片配色</label>
+        <select id="td-color" name="color">
+          <option value="primary">主色（米棕）</option>
+          <option value="secondary">次要（灰绿）</option>
+          <option value="tertiary">强调（陶土橙）</option>
+          <option value="warning">夜班（深金）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="td-note">备注</label>
+        <input type="text" id="td-note" name="note" maxlength="50" placeholder="选填">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-text" data-dialog-close>取消</button>
+      <button type="submit" class="btn btn-filled">{{ icon('save') }}保存</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function fillTemplateDialog(btn) {
+    var data = btn.getAttribute("data-tpl");
+    var form = document.getElementById("template-dialog").querySelector("form");
+    form.reset();
+    document.getElementById("td-action").value = "create";
+    document.getElementById("td-id").value = "";
+    document.getElementById("td-title").textContent = "新增班次模板";
+    if (!data) return;
+    var t = JSON.parse(data);
+    document.getElementById("td-action").value = "update";
+    document.getElementById("td-id").value = t.id;
+    document.getElementById("td-title").textContent = "编辑模板 · " + t.name;
+    document.getElementById("td-name").value = t.name;
+    document.getElementById("td-start").value = t.start_time;
+    document.getElementById("td-end").value = t.end_time;
+    document.getElementById("td-break").value = t.break_minutes;
+    document.getElementById("td-position").value = t.position || "";
+    document.getElementById("td-color").value = t.color || "primary";
+    document.getElementById("td-note").value = t.note || "";
+  }
+</script>
+{% endblock %}

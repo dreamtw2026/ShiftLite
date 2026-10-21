@@ -1,0 +1,213 @@
+[
+ {
+  "t": 1.194,
+  "action": "move",
+  "x": 1632,
+  "y": 577
+ },
+ {
+  "t": 2.229,
+  "action": "move",
+  "x": 1632,
+  "y": 634
+ },
+ {
+  "t": 2.229,
+  "action": "click",
+  "x": 1632,
+  "y": 634,
+  "label": "登录"
+ },
+ {
+  "t": 2.334,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": "登录成功"
+ },
+ {
+  "t": 4.91,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.5,
+  "label": "概览页"
+ },
+ {
+  "t": 7.767,
+  "action": "move",
+  "x": 411,
+  "y": 99
+ },
+ {
+  "t": 7.767,
+  "action": "hover",
+  "x": 411,
+  "y": 99,
+  "label": "stat:本周排班班次"
+ },
+ {
+  "t": 7.767,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.4,
+  "label": ""
+ },
+ {
+  "t": 10.434,
+  "action": "move",
+  "x": 776,
+  "y": 99
+ },
+ {
+  "t": 10.434,
+  "action": "hover",
+  "x": 776,
+  "y": 99,
+  "label": "stat:在职员工"
+ },
+ {
+  "t": 10.434,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.4,
+  "label": ""
+ },
+ {
+  "t": 13.093,
+  "action": "move",
+  "x": 1140,
+  "y": 99
+ },
+ {
+  "t": 13.093,
+  "action": "hover",
+  "x": 1140,
+  "y": 99,
+  "label": "stat:本周有效工时"
+ },
+ {
+  "t": 13.093,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.4,
+  "label": ""
+ },
+ {
+  "t": 15.76,
+  "action": "move",
+  "x": 1505,
+  "y": 99
+ },
+ {
+  "t": 15.76,
+  "action": "hover",
+  "x": 1505,
+  "y": 99,
+  "label": "stat:待处理冲突"
+ },
+ {
+  "t": 15.76,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.4,
+  "label": ""
+ },
+ {
+  "t": 18.426,
+  "action": "move",
+  "x": 104,
+  "y": 205
+ },
+ {
+  "t": 18.426,
+  "action": "hover",
+  "x": 104,
+  "y": 205,
+  "label": "nav:员工"
+ },
+ {
+  "t": 18.426,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 0.85,
+  "label": ""
+ },
+ {
+  "t": 19.541,
+  "action": "move",
+  "x": 104,
+  "y": 253
+ },
+ {
+  "t": 19.541,
+  "action": "hover",
+  "x": 104,
+  "y": 253,
+  "label": "nav:班次模板"
+ },
+ {
+  "t": 19.541,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 0.85,
+  "label": ""
+ },
+ {
+  "t": 20.674,
+  "action": "move",
+  "x": 104,
+  "y": 158
+ },
+ {
+  "t": 20.674,
+  "action": "hover",
+  "x": 104,
+  "y": 158,
+  "label": "nav:排班"
+ },
+ {
+  "t": 20.674,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 0.85,
+  "label": ""
+ },
+ {
+  "t": 21.809,
+  "action": "move",
+  "x": 104,
+  "y": 301
+ },
+ {
+  "t": 21.809,
+  "action": "hover",
+  "x": 104,
+  "y": 301,
+  "label": "nav:工时统计"
+ },
+ {
+  "t": 21.809,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 0.85,
+  "label": ""
+ },
+ {
+  "t": 22.673,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 3.2,
+  "label": ""
+ }
+]

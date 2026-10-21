@@ -1,0 +1,928 @@
+{
+ "conflictCases": [
+  {
+   "name": "无冲突",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-10",
+    "start_time": "09:00",
+    "end_time": "17:00",
+    "break_minutes": 0
+   },
+   "existing": [
+    {
+     "id": 100,
+     "work_date": "2026-03-09",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    }
+   ],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": []
+  },
+  {
+   "name": "完全重叠",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-10",
+    "start_time": "09:00",
+    "end_time": "17:00",
+    "break_minutes": 0
+   },
+   "existing": [
+    {
+     "id": 100,
+     "work_date": "2026-03-10",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    }
+   ],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "overlap",
+     "severity": "error",
+     "message": "与已有班次（03月10日 09:00–17:00）重叠 480 分钟",
+     "related_schedule_id": 100,
+     "rule_label": "班次重叠"
+    },
+    {
+     "rule": "daily_limit",
+     "severity": "warning",
+     "message": "当日有效工时合计 16 小时，超过全职每日上限 10 小时",
+     "related_schedule_id": null,
+     "rule_label": "超出每日工时上限"
+    }
+   ]
+  },
+  {
+   "name": "部分重叠",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-10",
+    "start_time": "15:00",
+    "end_time": "20:00",
+    "break_minutes": 0
+   },
+   "existing": [
+    {
+     "id": 100,
+     "work_date": "2026-03-10",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    }
+   ],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "overlap",
+     "severity": "error",
+     "message": "与已有班次（03月10日 09:00–17:00）重叠 120 分钟",
+     "related_schedule_id": 100,
+     "rule_label": "班次重叠"
+    },
+    {
+     "rule": "daily_limit",
+     "severity": "warning",
+     "message": "当日有效工时合计 13 小时，超过全职每日上限 10 小时",
+     "related_schedule_id": null,
+     "rule_label": "超出每日工时上限"
+    }
+   ]
+  },
+  {
+   "name": "首尾相接",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-10",
+    "start_time": "17:00",
+    "end_time": "21:00",
+    "break_minutes": 0
+   },
+   "existing": [
+    {
+     "id": 100,
+     "work_date": "2026-03-10",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    }
+   ],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "rest",
+     "severity": "warning",
+     "message": "与前一班次（03月10日 09:00–17:00）之间仅休息 0 小时 0 分钟，低于设置的最小间隔 10 小时",
+     "related_schedule_id": 100,
+     "rule_label": "班间休息不足"
+    },
+    {
+     "rule": "daily_limit",
+     "severity": "warning",
+     "message": "当日有效工时合计 12 小时，超过全职每日上限 10 小时",
+     "related_schedule_id": null,
+     "rule_label": "超出每日工时上限"
+    }
+   ]
+  },
+  {
+   "name": "跨日与次日重叠",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-10",
+    "start_time": "19:00",
+    "end_time": "01:00",
+    "break_minutes": 0
+   },
+   "existing": [
+    {
+     "id": 100,
+     "work_date": "2026-03-11",
+     "start_time": "00:30",
+     "end_time": "04:30",
+     "break_minutes": 0
+    }
+   ],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "overlap",
+     "severity": "error",
+     "message": "与已有班次（03月11日 00:30–04:30）重叠 30 分钟",
+     "related_schedule_id": 100,
+     "rule_label": "班次重叠"
+    }
+   ]
+  },
+  {
+   "name": "跨日休息不足",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-10",
+    "start_time": "19:00",
+    "end_time": "01:00",
+    "break_minutes": 0
+   },
+   "existing": [
+    {
+     "id": 100,
+     "work_date": "2026-03-11",
+     "start_time": "07:00",
+     "end_time": "15:00",
+     "break_minutes": 0
+    }
+   ],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "rest",
+     "severity": "warning",
+     "message": "与后一班次（03月11日 07:00–15:00）之间仅休息 6 小时 0 分钟，低于设置的最小间隔 10 小时",
+     "related_schedule_id": 100,
+     "rule_label": "班间休息不足"
+    }
+   ]
+  },
+  {
+   "name": "编辑排除自身",
+   "candidate": {
+    "id": 7,
+    "work_date": "2026-03-10",
+    "start_time": "09:00",
+    "end_time": "17:00",
+    "break_minutes": 0
+   },
+   "existing": [
+    {
+     "id": 7,
+     "work_date": "2026-03-10",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    }
+   ],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": []
+  },
+  {
+   "name": "不可排班日",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-14",
+    "start_time": "09:00",
+    "end_time": "17:00",
+    "break_minutes": 0
+   },
+   "existing": [],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "availability",
+     "severity": "error",
+     "message": "03月14日为周六，不在该员工的可排班日（周一、周二、周三、周四、周五）",
+     "related_schedule_id": null,
+     "rule_label": "可用时间冲突"
+    }
+   ]
+  },
+  {
+   "name": "超出可用时段",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-10",
+    "start_time": "17:00",
+    "end_time": "21:00",
+    "break_minutes": 0
+   },
+   "existing": [],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "09:00",
+    "available_to": "18:00"
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "availability",
+     "severity": "error",
+     "message": "班次 17:00–21:00 超出其每日可用时间段（09:00–18:00）",
+     "related_schedule_id": null,
+     "rule_label": "可用时间冲突"
+    }
+   ]
+  },
+  {
+   "name": "可用时段内正常",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-10",
+    "start_time": "09:00",
+    "end_time": "17:00",
+    "break_minutes": 0
+   },
+   "existing": [],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "09:00",
+    "available_to": "18:00"
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": []
+  },
+  {
+   "name": "每日上限",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-10",
+    "start_time": "17:00",
+    "end_time": "21:00",
+    "break_minutes": 0
+   },
+   "existing": [
+    {
+     "id": 100,
+     "work_date": "2026-03-10",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    }
+   ],
+   "employee": {
+    "employment_type": "fulltime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "rest",
+     "severity": "warning",
+     "message": "与前一班次（03月10日 09:00–17:00）之间仅休息 0 小时 0 分钟，低于设置的最小间隔 10 小时",
+     "related_schedule_id": 100,
+     "rule_label": "班间休息不足"
+    },
+    {
+     "rule": "daily_limit",
+     "severity": "warning",
+     "message": "当日有效工时合计 12 小时，超过全职每日上限 10 小时",
+     "related_schedule_id": null,
+     "rule_label": "超出每日工时上限"
+    }
+   ]
+  },
+  {
+   "name": "兼职每日上限",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-10",
+    "start_time": "09:00",
+    "end_time": "21:00",
+    "break_minutes": 0
+   },
+   "existing": [],
+   "employee": {
+    "employment_type": "parttime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "daily_limit",
+     "severity": "warning",
+     "message": "当日有效工时合计 12 小时，超过兼职每日上限 8 小时",
+     "related_schedule_id": null,
+     "rule_label": "超出每日工时上限"
+    }
+   ]
+  },
+  {
+   "name": "每周上限",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-13",
+    "start_time": "09:00",
+    "end_time": "17:00",
+    "break_minutes": 0
+   },
+   "existing": [
+    {
+     "id": 100,
+     "work_date": "2026-03-09",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    },
+    {
+     "id": 100,
+     "work_date": "2026-03-10",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    },
+    {
+     "id": 100,
+     "work_date": "2026-03-11",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    },
+    {
+     "id": 100,
+     "work_date": "2026-03-12",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    }
+   ],
+   "employee": {
+    "employment_type": "parttime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "weekly_limit",
+     "severity": "warning",
+     "message": "本周（03月09日–03月15日）有效工时合计 40 小时，超过兼职每周上限 24 小时",
+     "related_schedule_id": null,
+     "rule_label": "超出每周工时上限"
+    }
+   ]
+  },
+  {
+   "name": "周日跨夜归属开始周",
+   "candidate": {
+    "id": null,
+    "work_date": "2026-03-15",
+    "start_time": "21:00",
+    "end_time": "01:00",
+    "break_minutes": 0
+   },
+   "existing": [
+    {
+     "id": 100,
+     "work_date": "2026-03-09",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    },
+    {
+     "id": 100,
+     "work_date": "2026-03-10",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    },
+    {
+     "id": 100,
+     "work_date": "2026-03-11",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    },
+    {
+     "id": 100,
+     "work_date": "2026-03-12",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    },
+    {
+     "id": 100,
+     "work_date": "2026-03-13",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 0
+    }
+   ],
+   "employee": {
+    "employment_type": "parttime",
+    "available_days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "available_from": "",
+    "available_to": ""
+   },
+   "settings": {
+    "rest_minutes_min": 600,
+    "daily_max_minutes_fulltime": 600,
+    "daily_max_minutes_parttime": 480,
+    "weekly_max_minutes_fulltime": 2640,
+    "weekly_max_minutes_parttime": 1440
+   },
+   "expected": [
+    {
+     "rule": "weekly_limit",
+     "severity": "warning",
+     "message": "本周（03月09日–03月15日）有效工时合计 44 小时，超过兼职每周上限 24 小时",
+     "related_schedule_id": null,
+     "rule_label": "超出每周工时上限"
+    }
+   ]
+  }
+ ],
+ "summaryCases": [
+  {
+   "name": "单班次含休息",
+   "rows": [
+    {
+     "employee_id": 1,
+     "employee_name": "张三",
+     "position": "前厅",
+     "employment_type": "fulltime",
+     "work_date": "2026-03-10",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 30
+    }
+   ],
+   "start": "2026-03-09",
+   "end": "2026-03-15",
+   "expected": [
+    {
+     "employee_id": 1,
+     "name": "张三",
+     "position": "前厅",
+     "employment_type": "fulltime",
+     "type_label": "全职",
+     "shifts": 1,
+     "scheduled_minutes": 480,
+     "break_minutes": 30,
+     "effective_minutes": 450,
+     "by_date": {
+      "2026-03-10": 450
+     }
+    }
+   ]
+  },
+  {
+   "name": "跨日归属开始日",
+   "rows": [
+    {
+     "employee_id": 1,
+     "employee_name": "张三",
+     "position": "",
+     "employment_type": "fulltime",
+     "work_date": "2026-03-10",
+     "start_time": "21:00",
+     "end_time": "01:00",
+     "break_minutes": 0
+    }
+   ],
+   "start": "2026-03-01",
+   "end": "2026-03-31",
+   "expected": [
+    {
+     "employee_id": 1,
+     "name": "张三",
+     "position": "",
+     "employment_type": "fulltime",
+     "type_label": "全职",
+     "shifts": 1,
+     "scheduled_minutes": 240,
+     "break_minutes": 0,
+     "effective_minutes": 240,
+     "by_date": {
+      "2026-03-10": 240
+     }
+    }
+   ]
+  },
+  {
+   "name": "周日跨夜周界归属",
+   "rows": [
+    {
+     "employee_id": 1,
+     "employee_name": "张三",
+     "position": "",
+     "employment_type": "fulltime",
+     "work_date": "2026-03-15",
+     "start_time": "21:00",
+     "end_time": "01:00",
+     "break_minutes": 0
+    }
+   ],
+   "start": "2026-03-09",
+   "end": "2026-03-15",
+   "expected": [
+    {
+     "employee_id": 1,
+     "name": "张三",
+     "position": "",
+     "employment_type": "fulltime",
+     "type_label": "全职",
+     "shifts": 1,
+     "scheduled_minutes": 240,
+     "break_minutes": 0,
+     "effective_minutes": 240,
+     "by_date": {
+      "2026-03-15": 240
+     }
+    }
+   ]
+  },
+  {
+   "name": "多人排序与逐日",
+   "rows": [
+    {
+     "employee_id": 2,
+     "employee_name": "李四",
+     "position": "后厨",
+     "employment_type": "parttime",
+     "work_date": "2026-03-10",
+     "start_time": "09:00",
+     "end_time": "17:00",
+     "break_minutes": 30
+    },
+    {
+     "employee_id": 1,
+     "employee_name": "张三",
+     "position": "前厅",
+     "employment_type": "fulltime",
+     "work_date": "2026-03-10",
+     "start_time": "11:00",
+     "end_time": "19:00",
+     "break_minutes": 30
+    },
+    {
+     "employee_id": 1,
+     "employee_name": "张三",
+     "position": "前厅",
+     "employment_type": "fulltime",
+     "work_date": "2026-03-11",
+     "start_time": "11:00",
+     "end_time": "19:00",
+     "break_minutes": 30
+    }
+   ],
+   "start": "2026-03-09",
+   "end": "2026-03-15",
+   "expected": [
+    {
+     "employee_id": 1,
+     "name": "张三",
+     "position": "前厅",
+     "employment_type": "fulltime",
+     "type_label": "全职",
+     "shifts": 2,
+     "scheduled_minutes": 960,
+     "break_minutes": 60,
+     "effective_minutes": 900,
+     "by_date": {
+      "2026-03-10": 450,
+      "2026-03-11": 450
+     }
+    },
+    {
+     "employee_id": 2,
+     "name": "李四",
+     "position": "后厨",
+     "employment_type": "parttime",
+     "type_label": "兼职",
+     "shifts": 1,
+     "scheduled_minutes": 480,
+     "break_minutes": 30,
+     "effective_minutes": 450,
+     "by_date": {
+      "2026-03-10": 450
+     }
+    }
+   ]
+  }
+ ],
+ "fmtHoursCases": [
+  {
+   "minutes": 0,
+   "expected": "0 小时"
+  },
+  {
+   "minutes": 15,
+   "expected": "0.2 小时"
+  },
+  {
+   "minutes": 45,
+   "expected": "0.8 小时"
+  },
+  {
+   "minutes": 75,
+   "expected": "1.2 小时"
+  },
+  {
+   "minutes": 105,
+   "expected": "1.8 小时"
+  },
+  {
+   "minutes": 135,
+   "expected": "2.2 小时"
+  },
+  {
+   "minutes": 450,
+   "expected": "7.5 小时"
+  },
+  {
+   "minutes": 480,
+   "expected": "8 小时"
+  },
+  {
+   "minutes": 630,
+   "expected": "10.5 小时"
+  },
+  {
+   "minutes": 1440,
+   "expected": "24 小时"
+  },
+  {
+   "minutes": 2640,
+   "expected": "44 小时"
+  },
+  {
+   "minutes": 2700,
+   "expected": "45 小时"
+  }
+ ]
+}

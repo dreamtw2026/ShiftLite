@@ -1,0 +1,278 @@
+[
+ {
+  "t": 1.221,
+  "action": "move",
+  "x": 1632,
+  "y": 577
+ },
+ {
+  "t": 2.209,
+  "action": "move",
+  "x": 1632,
+  "y": 634
+ },
+ {
+  "t": 2.209,
+  "action": "click",
+  "x": 1632,
+  "y": 634,
+  "label": "登录"
+ },
+ {
+  "t": 2.315,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": "登录成功"
+ },
+ {
+  "t": 4.933,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.5,
+  "label": "员工列表"
+ },
+ {
+  "t": 8.061,
+  "action": "scroll",
+  "x": null,
+  "y": null,
+  "dy": 200
+ },
+ {
+  "t": 8.368,
+  "action": "move",
+  "x": 1590,
+  "y": 385
+ },
+ {
+  "t": 8.368,
+  "action": "click",
+  "x": 1590,
+  "y": 385,
+  "label": "编辑许阳"
+ },
+ {
+  "t": 9.552,
+  "action": "move",
+  "x": 960,
+  "y": 508
+ },
+ {
+  "t": 9.552,
+  "action": "hover",
+  "x": 960,
+  "y": 508,
+  "label": "dialog:可排班日"
+ },
+ {
+  "t": 9.552,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": ""
+ },
+ {
+  "t": 11.804,
+  "action": "move",
+  "x": 808,
+  "y": 583
+ },
+ {
+  "t": 11.804,
+  "action": "hover",
+  "x": 808,
+  "y": 583,
+  "label": "dialog:每日可用开始时间"
+ },
+ {
+  "t": 11.804,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": ""
+ },
+ {
+  "t": 14.053,
+  "action": "move",
+  "x": 1112,
+  "y": 583
+ },
+ {
+  "t": 14.053,
+  "action": "hover",
+  "x": 1112,
+  "y": 583,
+  "label": "dialog:每日可用结束时间"
+ },
+ {
+  "t": 14.053,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": ""
+ },
+ {
+  "t": 16.299,
+  "action": "move",
+  "x": 808,
+  "y": 404
+ },
+ {
+  "t": 16.299,
+  "action": "hover",
+  "x": 808,
+  "y": 404,
+  "label": "dialog:用工类型"
+ },
+ {
+  "t": 16.299,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": ""
+ },
+ {
+  "t": 18.309,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": "留存观察"
+ },
+ {
+  "t": 20.597,
+  "action": "move",
+  "x": 1134,
+  "y": 796
+ },
+ {
+  "t": 20.597,
+  "action": "click",
+  "x": 1134,
+  "y": 796,
+  "label": "关闭"
+ },
+ {
+  "t": 20.707,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 1.0,
+  "label": ""
+ },
+ {
+  "t": 22.295,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.2,
+  "label": "模板列表"
+ },
+ {
+  "t": 24.766,
+  "action": "move",
+  "x": 285,
+  "y": 201
+ },
+ {
+  "t": 24.766,
+  "action": "hover",
+  "x": 285,
+  "y": 201,
+  "label": "tpl:早班"
+ },
+ {
+  "t": 24.766,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": ""
+ },
+ {
+  "t": 27.014,
+  "action": "move",
+  "x": 285,
+  "y": 254
+ },
+ {
+  "t": 27.014,
+  "action": "hover",
+  "x": 285,
+  "y": 254,
+  "label": "tpl:中班"
+ },
+ {
+  "t": 27.014,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": ""
+ },
+ {
+  "t": 29.264,
+  "action": "move",
+  "x": 285,
+  "y": 307
+ },
+ {
+  "t": 29.264,
+  "action": "hover",
+  "x": 285,
+  "y": 307,
+  "label": "tpl:晚班"
+ },
+ {
+  "t": 29.264,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.0,
+  "label": ""
+ },
+ {
+  "t": 31.276,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 0.6,
+  "label": "跨日强调前"
+ },
+ {
+  "t": 32.119,
+  "action": "move",
+  "x": 292,
+  "y": 359
+ },
+ {
+  "t": 32.119,
+  "action": "hover",
+  "x": 292,
+  "y": 359,
+  "label": "tpl:打烊班"
+ },
+ {
+  "t": 32.119,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 3.2,
+  "label": ""
+ },
+ {
+  "t": 35.334,
+  "action": "pause",
+  "x": null,
+  "y": null,
+  "duration": 2.4,
+  "label": ""
+ }
+]
